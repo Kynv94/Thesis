@@ -26,3 +26,15 @@ E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\MainWindow.baml
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.g.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Properties.Resources.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csproj.GenerateResource.Cache
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.xml

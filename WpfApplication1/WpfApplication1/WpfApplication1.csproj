@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,7 +35,20 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
+    <Reference Include="PcapDotNet.Base">
+      <HintPath>..\..\PcapDotNet.Binaries.1.0.4.x64\PcapDotNet.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="PcapDotNet.Core">
+      <HintPath>..\..\PcapDotNet.Binaries.1.0.4.x64\PcapDotNet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PcapDotNet.Core.Extensions">
+      <HintPath>..\..\PcapDotNet.Binaries.1.0.4.x64\PcapDotNet.Core.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="PcapDotNet.Packets">
+      <HintPath>..\..\PcapDotNet.Binaries.1.0.4.x64\PcapDotNet.Packets.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -63,12 +77,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Class1.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

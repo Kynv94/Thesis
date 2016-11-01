@@ -65,7 +65,7 @@ namespace WpfApplication1
         }
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            BackgroundWorker worker1 = sender as BackgroundWorker;
+            //BackgroundWorker worker1 = sender as BackgroundWorker;
             // Open the device
             using (PacketCommunicator communicator =
                 selectedDevice.Open(65536,                                  // portion of the packet to capture
@@ -85,7 +85,7 @@ namespace WpfApplication1
 
                 }
                 // start the capture
-                worker1.RunWorkerAsync(communicator.ReceivePackets(0, PacketHandler));
+                communicator.ReceivePackets(0, PacketHandler);
             }
         }
         // Callback function invoked by libpcap for every incoming packet

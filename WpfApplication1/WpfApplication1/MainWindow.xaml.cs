@@ -4,8 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
-using PcapDotNet.Packets.IpV4;
-using PcapDotNet.Packets.Transport;
+using System.ComponentModel;
 
 namespace WpfApplication1
 {
@@ -19,8 +18,8 @@ namespace WpfApplication1
         public MainWindow()
         {
             InitializeComponent();
+            
             // Retrieve the device list from the local machine
-
 
             if (allDevices.Count == 0)
             {
@@ -43,10 +42,9 @@ namespace WpfApplication1
                 cbDevice.Items.Add(name_device);
             }
         }
-
+        public PacketDevice selectedDevice;
         private void cbDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Console.WriteLine(e.AddedItems[0].GetType());
             //PacketDevice selectedDevice = (e.AddedItems[0] as ComboBoxItem).Content as LivePacketDevice;
             String text = e.AddedItems[0] as String;
             int deviceIndex;
@@ -56,9 +54,18 @@ namespace WpfApplication1
                 if (text == (device.Name + " " + device.Description))
                     break;
             }
+            selectedDevice = allDevices[deviceIndex];
 
-            PacketDevice selectedDevice = allDevices[deviceIndex];
-
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            //worker.ProgressChanged += worker_ProgressChanged;
+            //worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.RunWorkerAsync(10000);
+        }
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker1 = sender as BackgroundWorker;
             // Open the device
             using (PacketCommunicator communicator =
                 selectedDevice.Open(65536,                                  // portion of the packet to capture
@@ -73,38 +80,33 @@ namespace WpfApplication1
                     string caption = "Warning";
                     MessageBoxButton buttons = MessageBoxButton.OK;
                     MessageBoxResult result;
-
                     result = MessageBox.Show(message, caption, buttons);
                     return;
+
                 }
-
-                // Compile the filter
-                using (BerkeleyPacketFilter filter = communicator.CreateFilter("ip and udp"))
-                {
-                    // Set the filter
-                    communicator.SetFilter(filter);
-                }
-
-                //            Console.WriteLine("Listening on " + selectedDevice.Description + "...");
-
                 // start the capture
-                communicator.ReceivePackets(0, PacketHandler);
+                worker1.RunWorkerAsync(communicator.ReceivePackets(0, PacketHandler));
             }
         }
-
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
         {
+            this.Dispatcher.Invoke(() =>
+            {
+                // print timestamp and length of the packet
+                PacketList.Items.Add(packet);
+                //string Timestamp = packet.Timestamp.ToString("yyyy-MM-dd hh:mm:ss.fff");
+                //IpV4Datagram ip = packet.Ethernet.IpV4;
+                //TcpDatagram tcp = ip.Tcp;
+                //IpV4Protocol Protocol = ip.Protocol;
+                //IpV4Address IpSrc = ip.Source, 
+                //            IpDes = ip.Destination;
+                //ushort PortSrc = tcp.SourcePort,
+                //       PortDes = tcp.DestinationPort;
 
-            // print timestamp and length of the packet
-            MenList.Items.Add(packet);
-            
-            //IpV4Datagram ip = packet.Ethernet.IpV4;
-            //UdpDatagram udp = ip.Udp;
-
-            //// print ip addresses and udp ports
-            //Console.WriteLine(ip.Source + ":" + udp.SourcePort + " -> " + ip.Destination + ":" + udp.DestinationPort);
-
+                //// print ip addresses and udp ports
+                //Console.WriteLine(ip.Source + ":" + udp.SourcePort + " -> " + ip.Destination + ":" + udp.DestinationPort);
+            });
         }
     
     }

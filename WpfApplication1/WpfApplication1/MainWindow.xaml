@@ -12,16 +12,22 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </Window.Resources>
+
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="67*"/>
-            <ColumnDefinition Width="204*"/>
-            <ColumnDefinition Width="109*"/>
-        </Grid.ColumnDefinitions>
+
+        <!--<Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="23*"/>
+            <RowDefinition Height="5*"/>
+        </Grid.RowDefinitions>
         <ListView 
-         Margin = "10,50,10,10"
-         Name = "PacketList" IsSynchronizedWithCurrentItem="True" 
-         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Grid.ColumnSpan="3">
+         Margin = "10,55,10,0" Name = "PacketList" IsSynchronizedWithCurrentItem="True" 
+         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
+         ScrollViewer.CanContentScroll="True" Grid.ColumnSpan="2"
+            SelectionChanged="PacketList_SelectionChanged">
             <ListView.Resources>
                 <Style TargetType="{x:Type GridViewColumnHeader}">
                     <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -32,30 +38,71 @@
                 <GridView>
 
                     <GridViewColumn Header = "Date" 
-                        DisplayMemberBinding = "{Binding Timestamp}" Width= "120"/>
+                        DisplayMemberBinding = "{Binding Timestamp}" Width= "150"/>
 
                     <GridViewColumn Header = "Protocol" 
-                        DisplayMemberBinding = "{Binding Ethernet.IpV4.Protocol}" Width= "100"/>
+                        DisplayMemberBinding = "{Binding Ethernet.IpV4.Protocol}" Width= "130"/>
 
-                    <GridViewColumn Header = "Source" 
+                    <GridViewColumn Header = "Byte(s)" 
+                        DisplayMemberBinding = "{Binding Count}" Width= "100"/>
+
+                    <GridViewColumn Header = "MAC Source" 
+                        DisplayMemberBinding = "{Binding Ethernet.Source}" Width="150"/>
+                    
+                    <GridViewColumn Header = "IP Source" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Source}" Width="150"/>
 
                     <GridViewColumn Header = "Port A" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.SourcePort}" Width= "70"/>
 
-                    <GridViewColumn Header = "Destination" 
+                    <GridViewColumn Header = "MAC Destination" 
+                        DisplayMemberBinding = "{Binding Ethernet.Destination}" Width="150"/>
+                    
+                    <GridViewColumn Header = "IP Destination" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Destination}" Width= "150"/>
 
                     <GridViewColumn Header = "Port B" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.DestinationPort}" Width= "70"/>
 
-                    <!--<GridViewColumn Header = "Info" 
-                        DisplayMemberBinding = "{Binding Info}" Width= "1000"/>-->
                 </GridView>
 
             </ListView.View>
-
+            <!--<GridSplitter x:Name="gridSplitter" Height="100" Width="5"/>
+            <GridSplitter x:Name="gridSplitter1" Height="100" Width="6"/>
+            <GridSplitter x:Name="gridSplitter3" Height="100" Width="5"/>
+            <Separator Height="100" Margin="0" Width="100"/>
+            <Separator Height="100" Margin="0" Width="100"/>
+            <Separator Height="100" Margin="0" Width="100"/>
+            <GridSplitter x:Name="gridSplitter2" Height="100" Width="5"/>
+            <GridSplitter x:Name="gridSplitter4" Height="100" Width="4"/>
+            <GridSplitter x:Name="gridSplitter5" Height="100" Width="5"/>-->
         </ListView>
-        <ComboBox x:Name="cbDevice" SelectionChanged="cbDevice_SelectionChanged" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Width="125" Height="20" Grid.ColumnSpan="2"/>
+
+        <ComboBox x:Name="cbDevice" Text="--Select device--" SelectionChanged="cbDevice_SelectionChanged" Margin="64,30,0,0" VerticalAlignment="Top" Height="20" HorizontalAlignment="Left" Width="160"/>
+        <Button x:Name="Stop_Button" Content="Stop" Margin="304,30,0,0" VerticalAlignment="Top" Height="20" Click="Stop_Btn" HorizontalAlignment="Left" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" RenderTransformOrigin="1.033,0.775">
+            <Button.Background>
+                <ImageBrush/>
+            </Button.Background>
+        </Button>
+        <Button x:Name="Start_Button" Content="Start" Margin="254,30,0,0" Height="20" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+            <Button.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-1.04"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Button.RenderTransform>
+            <Button.Background>
+                <ImageBrush/>
+            </Button.Background>
+        </Button>
+
+        <GridSplitter x:Name="gridSplitter6" Grid.Row="1" Grid.Column="0" Background="LightGray"
+                     Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,0"/>
+        <StackPanel x:Name="Stack_Info" Margin="10 5 10 5" Grid.Row="1" OpacityMask="Black" Background="White"/>
+        <Label x:Name="label" Content="Device" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Height="27"/>
+
+
     </Grid>
 </Window>

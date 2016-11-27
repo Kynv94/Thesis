@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfApplication1"
         mc:Ignorable="d"
         Title="MainWindow"
-        WindowState="Maximized">
+        WindowState="Maximized" Width="1024" Height="764">
     <Window.Resources>
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -20,14 +20,16 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>-->
         <Grid.RowDefinitions>
-            <RowDefinition Height="23*"/>
-            <RowDefinition Height="5*"/>
+
+            <RowDefinition Height="81*"/>
+            <RowDefinition Height="500*"/>
+            <RowDefinition Height="152*"/>
         </Grid.RowDefinitions>
         <ListView 
-         Margin = "10,55,10,0" Name = "PacketList" IsSynchronizedWithCurrentItem="True" 
+         Margin = "5,0" x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
          HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
-         ScrollViewer.CanContentScroll="True" Grid.ColumnSpan="2"
-            SelectionChanged="PacketList_SelectionChanged">
+         ScrollViewer.CanContentScroll="True"
+            SelectionChanged="lv_packet_SelectionChanged" Grid.Row="1">
             <ListView.Resources>
                 <Style TargetType="{x:Type GridViewColumnHeader}">
                     <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -48,7 +50,7 @@
 
                     <GridViewColumn Header = "MAC Source" 
                         DisplayMemberBinding = "{Binding Ethernet.Source}" Width="150"/>
-                    
+
                     <GridViewColumn Header = "IP Source" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Source}" Width="150"/>
 
@@ -57,16 +59,20 @@
 
                     <GridViewColumn Header = "MAC Destination" 
                         DisplayMemberBinding = "{Binding Ethernet.Destination}" Width="150"/>
-                    
+
                     <GridViewColumn Header = "IP Destination" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Destination}" Width= "150"/>
 
                     <GridViewColumn Header = "Port B" 
                         DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.DestinationPort}" Width= "70"/>
 
+                    <GridViewColumn Header = "Info" 
+                        DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.Http.Header}" Width= "70"/>
+
                 </GridView>
 
             </ListView.View>
+            <Canvas Height="100" Width="100"/>
             <!--<GridSplitter x:Name="gridSplitter" Height="100" Width="5"/>
             <GridSplitter x:Name="gridSplitter1" Height="100" Width="6"/>
             <GridSplitter x:Name="gridSplitter3" Height="100" Width="5"/>
@@ -78,30 +84,45 @@
             <GridSplitter x:Name="gridSplitter5" Height="100" Width="5"/>-->
         </ListView>
 
-        <ComboBox x:Name="cbDevice" Text="--Select device--" SelectionChanged="cbDevice_SelectionChanged" Margin="64,30,0,0" VerticalAlignment="Top" Height="20" HorizontalAlignment="Left" Width="160"/>
-        <Button x:Name="Stop_Button" Content="Stop" Margin="304,30,0,0" VerticalAlignment="Top" Height="20" Click="Stop_Btn" HorizontalAlignment="Left" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" RenderTransformOrigin="1.033,0.775">
-            <Button.Background>
-                <ImageBrush/>
-            </Button.Background>
-        </Button>
-        <Button x:Name="Start_Button" Content="Start" Margin="254,30,0,0" Height="20" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
-            <Button.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform/>
-                    <RotateTransform Angle="-1.04"/>
-                    <TranslateTransform/>
-                </TransformGroup>
-            </Button.RenderTransform>
-            <Button.Background>
-                <ImageBrush/>
-            </Button.Background>
-        </Button>
+        <GridSplitter x:Name="gridSplitter6" Grid.Row="2" Grid.Column="0" Background="LightGray"
+                     Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="5,0"/>
+        <!--<StackPanel x:Name="Stack_Info" Margin="10 5 10 5" Grid.Row="1" OpacityMask="Black" Background="White">-->
+        <TabControl x:Name="tab_Info" Margin="5,5,5,10" Grid.Row="2">
+            <TabItem x:Name="tab_httpheader" Header="HTTP Header" Margin="-1,-1,0,-1">
+                <TabItem.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                        <GradientStop Color="#FFF0F0F0" Offset="0"/>
+                        <GradientStop Color="#FFE5E5E5" Offset="1"/>
+                    </LinearGradientBrush>
+                </TabItem.Background>
+                <Grid Background="#FFE5E5E5" Margin="0,3,5,3"/>
+            </TabItem>
+        </TabControl>
+        <TabControl x:Name="tabControl" Margin="5" Height="66">
+            <TabItem Header="TabItem">
+                <Grid Background="#FFE5E5E5" Margin="0" Height="38">
+                    <ComboBox x:Name="cbDevice" Text="--Select device--" SelectionChanged="cbDevice_SelectionChanged" Margin="62,10,0,0" VerticalAlignment="Top" Height="20" HorizontalAlignment="Left" Width="160"/>
+                    <Button x:Name="Stop_Button" Content="Stop" Margin="302,10,0,0" VerticalAlignment="Top" Height="20" Click="Stop_Btn" HorizontalAlignment="Left" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" RenderTransformOrigin="1.033,0.775">
+                        <Button.Background>
+                            <ImageBrush/>
+                        </Button.Background>
+                    </Button>
+                    <Button x:Name="Start_Button" Content="Start" Margin="252,10,0,0" Height="20" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                        <Button.Background>
+                            <ImageBrush/>
+                        </Button.Background>
+                    </Button>
 
-        <GridSplitter x:Name="gridSplitter6" Grid.Row="1" Grid.Column="0" Background="LightGray"
-                     Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,0"/>
-        <StackPanel x:Name="Stack_Info" Margin="10 5 10 5" Grid.Row="1" OpacityMask="Black" Background="White"/>
-        <Label x:Name="label" Content="Device" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Height="27"/>
+                    <Label x:Name="label" Content="Device" Margin="8,6,0,0" Height="27" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Filter">
+                <Grid Background="#FFE5E5E5" Margin="0" Height="38">
+                    <CheckBox x:Name="cb_web" Content="Web" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" Checked="cbweb_changed" Unchecked="cbweb_changed" />
+                    <CheckBox x:Name="cb_ftp" Content="FTP" HorizontalAlignment="Left" Margin="70,10,0,0" VerticalAlignment="Top" IsChecked="True" Checked="cbftp_changed" Unchecked="cbftp_changed" />
+                </Grid>
+            </TabItem>
+        </TabControl>
 
 
     </Grid>

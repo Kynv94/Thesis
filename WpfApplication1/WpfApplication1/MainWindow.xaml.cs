@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Windows.Data;
 
 namespace WpfApplication1
 {
@@ -16,6 +18,7 @@ namespace WpfApplication1
     {
 
         IList<LivePacketDevice> allDevices;
+        List<Packet> list_packet = new List<Packet>();
         public MainWindow()
         {
             InitializeComponent();
@@ -42,6 +45,20 @@ namespace WpfApplication1
                     name_device += device.Description;
                 cbDevice.Items.Add(name_device);
             }
+
+            
+            //collview_packet.Filter += Filter_FTP;
+        }
+
+        private ICollectionView collview_packet;
+        private bool Filter_Web(object item)
+        {
+            if (cb_web.IsChecked == false)
+                return true;
+            Packet packet = item as Packet;
+            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
+            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
+            return (port_src == 443 || port_src == 80  || port_des == 443 || port_des == 80);
         }
         public PacketDevice selectedDevice;
         private void cbDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -95,34 +112,31 @@ namespace WpfApplication1
         private void PacketHandler(Packet packet)
         {
            
-            PacketList.Dispatcher.Invoke(() =>
+            lv_packet.Dispatcher.Invoke(() =>
             {
                 // Add packet to the gridview
-                PacketList.Items.Add(packet);
-                try
-                {
-                    
-                   Console.WriteLine("------" + packet);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("------" + ex);
-                }
+                lv_packet.Items.Add(packet);
+
+                //Create collection packet
+                collview_packet = CollectionViewSource.GetDefaultView(lv_packet.Items);
+                collview_packet.Filter = new Predicate<object>(Filter_Web);
             });
+            
         }
 
         private void Start_Btn(object sender, RoutedEventArgs e)
         {
-            PacketList.Items.Clear();
-            PacketList.Items.Refresh();
+            lv_packet.Items.Clear();
+            lv_packet.Items.Refresh();
             cbDevice.IsEnabled = false;
             Start_Button.IsEnabled = false;
             Stop_Button.IsEnabled = true;
+            
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.DoWork += worker_DoWork;
-            worker.RunWorkerAsync(10000);
+            worker.RunWorkerAsync(1000);
         }
 
         private void Stop_Btn(object sender, RoutedEventArgs e)
@@ -142,11 +156,12 @@ namespace WpfApplication1
             }
         }
 
-        private void PacketList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void lv_packet_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            if (e.AddedItems.Count == 0)
+                return;
             Packet packet = e.AddedItems[0] as Packet;
-            Stack_Info.Children.Clear();
+            //Stack_Info.Children.Clear();
 
             //TextBlock tbFrame = new TextBlock();
             //tbFrame.Text = "Frame:" + packet.Count + " byte(s)";
@@ -166,23 +181,41 @@ namespace WpfApplication1
             //StackPanel_Add(stack_Ethernet, new List<UIElement> { tbMacSrc, tbMacDes, tbType });
             //exEthernet.Content = stack_Ethernet;
 
-            // Expander Http Header
-            if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
+            try
             {
-                Expander exHTTPHeader = new Expander();
-                exHTTPHeader.Header = "HTTP Header";
+                
+                // Expander Http Header
+                tab_httpheader.Content = null;
+                if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
+                {
+                    //Expander exHTTPHeader = new Expander();
+                    //exHTTPHeader.Header = "HTTP Header";
+                    
+                    TextBlock tbHTTPHeader = new TextBlock();
 
-                TextBlock tbHTTPHeader = new TextBlock();
+                    tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
 
-                tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
+                    //exHTTPHeader.Content = tbHTTPHeader;
 
-                exHTTPHeader.Content = tbHTTPHeader;
-
-                StackPanel_Add(Stack_Info, new List<UIElement> { exHTTPHeader });
+                    //StackPanel_Add(Stack_Info, new List<UIElement> { tbHTTPHeader });
+                    tab_httpheader.Content = tbHTTPHeader;
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("------" + ex);
+                throw ex;
+            }
+        }
 
+        private void cbweb_changed(object sender, RoutedEventArgs e)
+        {
+            // CollectionViewSource.GetDefaultView(lv_packet.ItemsSource).Refresh();
+        }
 
-            
+        private void cbftp_changed(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 

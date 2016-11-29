@@ -5,26 +5,30 @@ using System.Windows.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using System.ComponentModel;
-using System.Collections.ObjectModel;
 using System.Windows.Data;
+using System.Data.Entity;
 
 namespace WpfApplication1
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-
+ 
     public partial class MainWindow : Window
-    {
-
+    {       
         IList<LivePacketDevice> allDevices;
         List<Packet> list_packet = new List<Packet>();
         public MainWindow()
         {
             InitializeComponent();
-
-            // Retrieve the device list from the local machine
-            allDevices = LivePacketDevice.AllLocalMachine;
+           /* using (var sc = new SimpleContext())
+            {
+                var _packet = new SimplePacket { PacketID = Guid.NewGuid(), DestIP = "123", DestMAC = "22", DestPort = "33" };
+                sc.SimplePackets.Add(_packet);
+                sc.SaveChanges();
+            }*/
+                // Retrieve the device list from the local machine
+                allDevices = LivePacketDevice.AllLocalMachine;
             if (allDevices.Count == 0)
             {
                 string message = "No interfaces found! Make sure WinPcap is installed.";
@@ -35,6 +39,7 @@ namespace WpfApplication1
                 result = MessageBox.Show(message, caption, buttons);
                 return;
             }
+            
 
             // Print the list
             for (int i = 0; i != allDevices.Count; ++i)

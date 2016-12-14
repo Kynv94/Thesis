@@ -93,8 +93,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Class1.cs" />
-    <Compile Include="Database.cs" />
-    <Compile Include="DatabaseHandle.cs" />
+    <Compile Include="Database\Context.cs" />
+    <Compile Include="Database\Detail.cs" />
+    <Compile Include="Database\HandleDatabase.cs" />
+    <Compile Include="Database\Session.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

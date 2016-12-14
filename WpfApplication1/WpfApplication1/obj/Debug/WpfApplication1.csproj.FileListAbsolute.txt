@@ -38,3 +38,13 @@ E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensi
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.pdb
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.xml
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.xml

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApplication1"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowState="Maximized">
@@ -14,24 +15,20 @@
     </Window.Resources>
 
     <Grid>
-
-        <!--<Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>-->
         <Grid.RowDefinitions>
             <RowDefinition/>
+
         </Grid.RowDefinitions>
         <TabControl x:Name="tabControl" Margin="5" BorderBrush="White">
             <TabItem x:Name="Tab_Event" Header="EVENT" Margin="0" Width="75" Height="20">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="24*"/>
-                        <RowDefinition Height="85*"/>
-                        <RowDefinition Height="30*"/>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="133*"/>
+                        <RowDefinition Height="50*"/>
                     </Grid.RowDefinitions>
                     <ListView 
-                        Margin = "0,2,0,0" x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
+                        Margin = "0,5,0,0" x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
                         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
                         ScrollViewer.CanContentScroll="True"
                         SelectionChanged="lv_packet_SelectionChanged" Grid.Row="1">
@@ -80,7 +77,7 @@
                         <Canvas Height="100" Width="100"/>
                     </ListView>
                     <GridSplitter x:Name="gridSplitter6" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" Grid.Row="2" Height="5" VerticalAlignment="Top"/>
-                    <TabControl x:Name="tab_Info" Margin="0,9,0,0" Grid.Row="2">
+                    <TabControl x:Name="tab_Info" Margin="0,5,0,0" Grid.Row="2">
                         <TabItem x:Name="tab_httpheader" Header="HTTP Header" Margin="-2,-1,1,-1">
                             <ScrollViewer x:Name="sv_httpheader" />
                         </TabItem>
@@ -88,7 +85,7 @@
                             <ScrollViewer x:Name="sv_body" Margin="0,0,0,162" />
                         </TabItem>
                     </TabControl>
-                    <TabControl x:Name="tabControl_Copy" Margin="0,0,0,2">
+                    <TabControl x:Name="tabControl_Copy" Margin="0">
                         <TabItem x:Name="tab_view" Header="View" Height="22" VerticalAlignment="Top" Margin="-2,-2,-2,0">
                             <Grid Background="#FFE5E5E5">
                                 <ComboBox x:Name="cbDevice" Text="--Select device--" SelectionChanged="cbDevice_SelectionChanged" Margin="62,10,0,0" VerticalAlignment="Top" Height="20" HorizontalAlignment="Left" Width="160"/>
@@ -109,10 +106,10 @@
                         <TabItem Header="Filter" Margin="3,-2,-7,0">
                             <Grid x:Name="grid_filter" Background="#FFE5E5E5" Margin="0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="40*"/>
-                                    <ColumnDefinition Width="40*"/>
-                                    <ColumnDefinition Width="40*"/>
-                                    <ColumnDefinition Width="171*"/>
+                                    <ColumnDefinition Width="101"/>
+                                    <ColumnDefinition Width="102"/>
+                                    <ColumnDefinition Width="101"/>
+                                    <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <!-- Filter Mac -->
                                 <ToggleButton x:Name ="btn_mac" Content="Mac" Margin="0" BorderBrush="{x:Null}" Foreground="Black" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Background="#FFE5E5E5"/>
@@ -150,9 +147,43 @@
                     </TabControl>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Tab_Chart" Margin="0" Header="CHART" Width="75" Height="20">
 
+            <!-- TAB CHART -->
+            <TabItem x:Name="Tab_Chart" Margin="0" Header="CHART" Width="75" Height="20">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="100*"/>
+                        <RowDefinition Height="365*"/>
+                    </Grid.RowDefinitions>
+
+                    <TabControl x:Name="tabControl1">
+                        <TabItem Header="TabItem">
+                            <Grid Background="#FFE5E5E5"/>
+                        </TabItem>
+                        <TabItem Header="TabItem">
+                            <Grid Background="#FFE5E5E5" Margin="0"/>
+                        </TabItem>
+                    </TabControl>
+
+
+                    <Grid Margin="0,19,0,0" Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                    </Grid>
+                    <lvc:CartesianChart Series="{Binding SeriesCollection}" LegendLocation="Right" Margin="0" Grid.Row="1" >
+
+                        <lvc:CartesianChart.AxisY>
+                            <lvc:Axis Title="Sales" LabelFormatter="{Binding YFormatter}"></lvc:Axis>
+                        </lvc:CartesianChart.AxisY>
+                        <lvc:CartesianChart.AxisX>
+                            <lvc:Axis Title="Month" Labels="{Binding Labels}"></lvc:Axis>
+                        </lvc:CartesianChart.AxisX>
+                    </lvc:CartesianChart>
+
+                </Grid>
             </TabItem>
+
         </TabControl>
 
 

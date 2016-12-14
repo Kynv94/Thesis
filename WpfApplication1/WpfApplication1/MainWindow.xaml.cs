@@ -6,7 +6,17 @@ using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using System.ComponentModel;
 using System.Windows.Data;
+<<<<<<< HEAD
 using System.Data.Entity;
+=======
+using PcapDotNet.Packets.IpV4;
+using PcapDotNet.Packets.Transport;
+using PcapDotNet.Packets.Http;
+using System.IO;
+using System.Linq;
+using System.IO.Compression;
+using System.Text;
+>>>>>>> origin/vers-1
 
 namespace WpfApplication1
 {
@@ -50,22 +60,10 @@ namespace WpfApplication1
                     name_device += device.Description;
                 cbDevice.Items.Add(name_device);
             }
-
-            
-            //collview_packet.Filter += Filter_FTP;
         }
 
-        private ICollectionView collview_packet;
-        private bool Filter_Web(object item)
-        {
-            if (cb_web.IsChecked == false)
-                return true;
-            Packet packet = item as Packet;
-            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
-            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
-            return (port_src == 443 || port_src == 80  || port_des == 443 || port_des == 80);
-        }
         public PacketDevice selectedDevice;
+
         private void cbDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
@@ -104,6 +102,7 @@ namespace WpfApplication1
                         return;
                     }
                     // start the capture
+                    // collview_packet.CollectionViewType = typeof(ListCollectionView);
                     communicator.ReceivePackets(0, PacketHandler);
 
                 }
@@ -113,6 +112,29 @@ namespace WpfApplication1
                 throw ex;
             }
         }
+
+        private CollectionViewSource collview_packet = new CollectionViewSource();
+
+        private void Filter_Web(object sender, FilterEventArgs e)
+        {
+            if (cb_web.IsChecked == false)
+                e.Accepted &= true;
+            Packet packet = e.Item as Packet;
+            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
+            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
+            e.Accepted &= (port_src == 443 || port_src == 80 || port_des == 443 || port_des == 80);
+        }
+
+        private void Filter_FTP(object sender, FilterEventArgs e)
+        {
+            if (cb_ftp.IsChecked == false)
+                e.Accepted &= true;
+            Packet packet = e.Item as Packet;
+            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
+            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
+            e.Accepted &= (port_src == 21 || port_des == 21);
+        }
+
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
         {
@@ -120,11 +142,14 @@ namespace WpfApplication1
             lv_packet.Dispatcher.Invoke(() =>
             {
                 // Add packet to the gridview
+                
                 lv_packet.Items.Add(packet);
-
+                // lv_packet.ItemsSource = lv_packet.Items;
                 //Create collection packet
-                collview_packet = CollectionViewSource.GetDefaultView(lv_packet.Items);
-                collview_packet.Filter = new Predicate<object>(Filter_Web);
+                //collview_packet.Source = lv_packet.Items as ICollectionView;
+                //collview_packet.Filter += new FilterEventHandler(Filter_Web);
+                //collview_packet.Filter += new FilterEventHandler(Filter_FTP);
+
             });
             
         }
@@ -166,44 +191,25 @@ namespace WpfApplication1
             if (e.AddedItems.Count == 0)
                 return;
             Packet packet = e.AddedItems[0] as Packet;
-            //Stack_Info.Children.Clear();
-
-            //TextBlock tbFrame = new TextBlock();
-            //tbFrame.Text = "Frame:" + packet.Count + " byte(s)";
-
-            //StackPanel_Add(Stack_Info, new List<UIElement> { tbFrame });
-            // Expander Ethernet
-            //Expander exEthernet = new Expander();
-            //exEthernet.Header = "Ethernet";
-
-            //StackPanel stack_Ethernet = new StackPanel();
-            //TextBlock tbMacSrc = new TextBlock(), 
-            //          tbMacDes = new TextBlock(),
-            //          tbType = new TextBlock();
-            //tbMacSrc.Text = "Mac Address Source: " + (packet.Ethernet.Source.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Source.ToString());
-            //tbMacDes.Text = "Mac Address Destination: " + (packet.Ethernet.Destination.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Destination.ToString());
-            //tbType.Text = "Type: " + packet.Ethernet.EtherType.ToString();
-            //StackPanel_Add(stack_Ethernet, new List<UIElement> { tbMacSrc, tbMacDes, tbType });
-            //exEthernet.Content = stack_Ethernet;
 
             try
             {
-                
+
                 // Expander Http Header
-                tab_httpheader.Content = null;
+                
+                sv_body.Content = packet.Ethernet.IpV4.Tcp.Http;
                 if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
                 {
                     //Expander exHTTPHeader = new Expander();
                     //exHTTPHeader.Header = "HTTP Header";
+
+
+                    sv_httpheader.Content = packet.Ethernet.IpV4.Tcp.Http.Header;
                     
-                    TextBlock tbHTTPHeader = new TextBlock();
-
-                    tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
-
                     //exHTTPHeader.Content = tbHTTPHeader;
 
                     //StackPanel_Add(Stack_Info, new List<UIElement> { tbHTTPHeader });
-                    tab_httpheader.Content = tbHTTPHeader;
+
                 }
             }
             catch (Exception ex)
@@ -211,6 +217,64 @@ namespace WpfApplication1
                 Console.WriteLine("------" + ex);
                 throw ex;
             }
+
+
+            //IpV4Datagram ip = packet.Ethernet.IpV4;
+            //TcpDatagram tcp = ip.Tcp;
+            //HttpDatagram http = tcp.Http;
+            //string httpBody = "";
+            //string httpHeader = "";
+
+            //try
+            //{
+            //    // parse packet
+            //    if (tcp.IsValid && tcp.PayloadLength > 0)
+            //    {
+            //        // pull the payload 
+            //        Datagram dg = tcp.Payload;
+            //        MemoryStream ms = dg.ToMemoryStream();
+            //        StreamReader sr = new StreamReader(ms);
+            //        string content = sr.ReadToEnd();
+
+            //        // skip if encrypted / non parsable
+            //        if (content.IndexOf("HTTP") == -1) { continue; }
+
+            //        // parse out header
+            //        int endHeader = content.IndexOf("\r\n\r\n");
+            //        if (endHeader == -1) { throw new System.Exception("Cant discern header breakpoint."); }
+            //        httpHeader = content.Substring(0, endHeader);
+
+            //        // parse out body
+            //        // but make sure it isn't just composed of only the CRLF CRLF breaks
+            //        if (http.Body != null && (content.Length - endHeader > 4))
+            //        {
+            //            // we have some body content
+            //            // parse out and decompress if necessary
+            //            Stream bodyStream = new MemoryStream(http.Body.ToArray());
+            //            if (http.Header.ToString().ToLower().Contains("content-encoding: gzip"))
+            //            {
+            //                bodyStream = new GZipStream(bodyStream, CompressionMode.Decompress);
+            //            }
+            //            if (http.Header.ToString().ToLower().Contains("content-encoding: deflate"))
+            //            {
+            //                bodyStream = new DeflateStream(bodyStream, CompressionMode.Decompress);
+            //            }
+
+            //            // ERROR: for gzip streams, getting:
+            //            // "The magic number in GZip header is not correct. Make sure you are passing in a GZip stream."
+            //            // works fine for non-encrypted streams
+            //            byte[] bodyBytes = StreamReader(bodyStream);
+            //            httpBody = Encoding.UTF8.GetString(bodyBytes);
+            //            sv_body.Content = httpBody;
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw ex;
+            //}
+
+            
         }
 
         private void cbweb_changed(object sender, RoutedEventArgs e)

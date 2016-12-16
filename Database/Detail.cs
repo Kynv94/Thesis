@@ -11,7 +11,7 @@
         [StringLength(1000)]
         public string KeyData { get; set; }
         public string TextData { get; set; }
-        public string BinData { get; set; }
+        //public byte[] BinData { get; set; }
         public virtual Session Session { get; set; }
     }
 }

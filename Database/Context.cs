@@ -1,0 +1,119 @@
+﻿namespace WpfApplication1.Database
+{
+    using System;
+    using System.Data.Entity;
+    using System.Data.Entity.Core.Objects;
+    using System.Data.Entity.Infrastructure;
+
+    public partial class Context : DbContext
+    {
+        public Context() : base("NetTough_Database")
+        { }
+        public virtual DbSet<Detail> Details { get; set; }
+        public virtual DbSet<Session> Sessions { get; set; }
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Detail>()
+                .Property(e => e.KeyData)
+                .IsFixedLength();
+            modelBuilder.Entity<Session>()
+                .Property(e => e.IP_in)
+                .IsUnicode(false);
+            //modelBuilder.Entity<Session>()
+            //  .Property(e => e.IP_in_bin)
+            //.IsFixedLength();
+            modelBuilder.Entity<Session>()
+                .Property(e => e.IP_out)
+                .IsUnicode(false);
+            //modelBuilder.Entity<Session>()
+            //  .Property(e => e.IP_out_bin)
+            //.IsFixedLength();
+            modelBuilder.Entity<Session>()
+                .HasMany(e => e.Details)
+                .WithRequired(e => e.Session)
+                .WillCascadeOnDelete(false);
+        }
+        public virtual long NT_add_session(string iP_in, string iP_out, string mAC_in, Nullable<System.DateTime> started, Nullable<System.DateTime> ended, Nullable<int> port_in, Nullable<int> port_out, ObjectParameter newID)
+        {
+            var iP_inParameter = iP_in != null ?
+                new ObjectParameter("IP_in", iP_in) :
+                new ObjectParameter("IP_in", typeof(string));
+
+            var iP_outParameter = iP_out != null ?
+                new ObjectParameter("IP_out", iP_out) :
+                new ObjectParameter("IP_out", typeof(string));
+
+            var mAC_inParameter = mAC_in != null ?
+                new ObjectParameter("MAC_in", mAC_in) :
+                new ObjectParameter("MAC_in", typeof(string));
+
+            var startedParameter = started.HasValue ?
+                new ObjectParameter("Started", started) :
+                new ObjectParameter("Started", typeof(System.DateTime));
+
+            var endedParameter = ended.HasValue ?
+                new ObjectParameter("Ended", ended) :
+                new ObjectParameter("Ended", typeof(System.DateTime));
+
+            var port_inParameter = port_in.HasValue ?
+                new ObjectParameter("Port_in", port_in) :
+                new ObjectParameter("Port_in", typeof(int));
+
+            var port_outParameter = port_out.HasValue ?
+                new ObjectParameter("Port_out", port_out) :
+                new ObjectParameter("Port_out", typeof(int));
+
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_add_session", iP_inParameter, iP_outParameter, mAC_inParameter, startedParameter, endedParameter, port_inParameter, port_outParameter, newID);
+        }
+        public virtual long NT_add_detail(Nullable<long> sessID, Nullable<System.DateTime> updateTime, string keydata, string textdata, ObjectParameter newID)
+        {
+            var sessIDParameter = sessID.HasValue ?
+                new ObjectParameter("SessID", sessID) :
+                new ObjectParameter("SessID", typeof(long));
+
+            var updateTimeParameter = updateTime.HasValue ?
+                new ObjectParameter("UpdateTime", updateTime) :
+                new ObjectParameter("UpdateTime", typeof(System.DateTime));
+
+            var keydataParameter = keydata != null ?
+                new ObjectParameter("Keydata", keydata) :
+                new ObjectParameter("Keydata", typeof(string));
+
+            var textdataParameter = textdata != null ?
+                new ObjectParameter("Textdata", textdata) :
+                new ObjectParameter("Textdata", typeof(string));
+
+            //     var bindataParameter = bindata != null ?
+            //       new ObjectParameter("Bindata", bindata) :
+            //     new ObjectParameter("Bindata", typeof(byte[]));
+
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_add_detail", sessIDParameter, updateTimeParameter, keydataParameter, textdataParameter, newID);
+        }
+        public virtual int NT_clear_all_data()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_clear_all_data");
+        }
+
+        public virtual int NT_clear_old_data(Nullable<System.DateTime> current_date, Nullable<int> max_age)
+        {
+            var current_dateParameter = current_date.HasValue ?
+                new ObjectParameter("current_date", current_date) :
+                new ObjectParameter("current_date", typeof(System.DateTime));
+
+            var max_ageParameter = max_age.HasValue ?
+                new ObjectParameter("max_age", max_age) :
+                new ObjectParameter("max_age", typeof(int));
+
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_clear_old_data", current_dateParameter, max_ageParameter);
+        }
+
+        public virtual int NT_delete_detail(Nullable<long> detID)
+        {
+            var detIDParameter = detID.HasValue ?
+                new ObjectParameter("DetID", detID) :
+                new ObjectParameter("DetID", typeof(long));
+
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_delete_detail", detIDParameter);
+        }
+    }
+}

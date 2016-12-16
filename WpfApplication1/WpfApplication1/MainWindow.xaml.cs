@@ -28,7 +28,8 @@ namespace WpfApplication1
         IList<LivePacketDevice> allDevices;
         List<Data> List_data1 = new List<Data> { };
         //List<Database.Session> List_session2 = new List<Database.Session>;
-        Database.HandleDatabase db = new Database.HandleDatabase();
+
+        Database.DatabaseHandle db = new Database.DatabaseHandle();
         public MainWindow()
         {
             InitializeComponent();
@@ -173,23 +174,49 @@ namespace WpfApplication1
         }
         private void add_information(Database.Session _session, Database.Detail _detail, Packet _packet)
         {
-            if (_packet.IpV4.Source != null)
+            if (_packet.Ethernet.IpV4.Source != null)
                 _session.IP_in = _packet.IpV4.Source.ToString();
             else
                 _session.IP_in = "0.0.0.0";
-            if (_packet.IpV4.Destination != null)
-                _session.IP_in = _packet.IpV4.Destination.ToString();
+            if (_packet.Ethernet.IpV4.Destination != null)
+                _session.IP_out = _packet.IpV4.Destination.ToString();
             else
-                _session.IP_in = "0.0.0.0";
-            _session.Port_in = _packet.IpV4.Tcp.SourcePort;
-            _session.Port_out = _packet.IpV4.Tcp.DestinationPort;
+                _session.IP_out = "0.0.0.0";
             _session.MAC_in = _packet.Ethernet.Source.ToString();
             _session.Started = _packet.Timestamp;
-            //Phaan biet theo port
+            _session.Ended = _packet.Timestamp;
             _detail.UpdateTime = _packet.Timestamp;
-            _detail.KeyData = Dns.GetHostEntry(_session.IP_out).HostName;
-            if (_packet.Ethernet.IpV4.Tcp.Payload != null)
-                _detail.TextData = _packet.Ethernet.IpV4.Tcp.Payload.Decode(Encoding.UTF8);
+            //Phaan biet theo port
+            try
+            {
+                _detail.KeyData = Dns.GetHostEntry(_session.IP_out).HostName;
+            }
+            catch (Exception)
+            {
+                _detail.KeyData = "";
+            }
+            if (_packet.IpV4.Tcp != null)
+            {
+                _session.Port_in = _packet.IpV4.Tcp.SourcePort;
+                _session.Port_out = _packet.IpV4.Tcp.DestinationPort;
+                if (_packet.Ethernet.IpV4.Tcp.Payload != null)
+                {
+                    _detail.TextData = _packet.Ethernet.IpV4.Tcp.Payload.Decode(Encoding.UTF8);
+                    _detail.BinData = _packet.Ethernet.IpV4.Tcp.Payload.ToHexadecimalString().ToUpper();
+                }
+                else
+                {
+                    _detail.TextData = "";
+                    _detail.BinData = "";
+                }
+            }
+            else
+            {
+                _session.Port_in = 0;
+                _session.Port_out = 0;
+                _detail.TextData = "";
+                _detail.BinData = "";
+            }
         }
 
         private void Start_Btn(object sender, RoutedEventArgs e)

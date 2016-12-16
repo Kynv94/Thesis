@@ -14,48 +14,8 @@ namespace WpfApplication1.Database
         public int? Port_in;
         public int? Port_out;
     };
-    class DatabaseHandle
+    class HandleDatabase
     {
-        public void Add_data(Session newsession, Detail newdetail)
-        {
-            using (var _data = new Context())
-            {
-                var old_session = (from s in _data.Sessions
-                                   where ((s.IP_in == newsession.IP_in && s.IP_out == newsession.IP_out && s.Port_in == newsession.Port_in && s.Port_out == newsession.Port_out)
-                                   || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
-                                   select s).FirstOrDefault();
-                if (old_session == null)
-                {
-                    newsession.Details.Add(newdetail);
-                    _data.Sessions.Add(newsession);
-                    _data.SaveChanges();
-                    var return_session_id = (from s in _data.Sessions
-                                             where ((s.IP_in == newsession.IP_in && s.IP_out == newsession.IP_out && s.Port_in == newsession.Port_in && s.Port_out == newsession.Port_out)
-                                             || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
-                                             select s.SessionID).FirstOrDefault();
-                    newdetail.SessionID = return_session_id;
-                    _data.Details.Add(newdetail);
-                    _data.SaveChanges();
-                }
-                else
-                {
-                    old_session.Details.Add(newdetail);
-                    old_session.Ended = newdetail.UpdateTime;
-                    newdetail.SessionID = old_session.SessionID;
-                    _data.Details.Add(newdetail);
-                    _data.Entry(old_session).State = System.Data.Entity.EntityState.Modified;
-                    _data.SaveChanges();
-                }
-            }
-        }
-        public List<Detail> GetData()
-        {
-            using (var _data = new Context())
-            {
-                return _data.Details.ToList();
-            }
-        }
-        /*
         //Thêm dữ liệu vào database
         public void Add_data(Session newsession, Detail newdetail)
         {
@@ -64,18 +24,14 @@ namespace WpfApplication1.Database
                 ObjectParameter new_detail_id = new ObjectParameter("Det_ID", typeof(long));
 
                 //Thu thập IP, Port trong Database
-                //var Selected_session_ip_port = from s in _data.Sessions
-                //                               select new Session { IP_in = s.IP_in, IP_out = s.IP_out, Port_in = s.Port_in, Port_out = s.Port_out };
+                IEnumerable<Selected_sessions> Selected_session_ip_port = from s in _data.Sessions
+                                                                          select new Selected_sessions { IP_in = s.IP_in, IP_out = s.IP_out, Port_in = s.Port_in, Port_out = s.Port_out };
 
                 //Chọn riêng IP, Port trong new session để so sánh
-                //Session New_session_ip_port = new Session { IP_in = newsession.IP_in, IP_out = newsession.IP_out, Port_in = newsession.Port_in, Port_out = newsession.Port_out };
-                var old_session_id = (from s in _data.Sessions
-                                      where ((s.IP_in == newsession.IP_in && s.IP_out == newsession.IP_out && s.Port_in == newsession.Port_in && s.Port_out == newsession.Port_out)
-                                      || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
-                                      select s.SessionID).FirstOrDefault();
+                Selected_sessions New_session_ip_port = new Selected_sessions { IP_in = newsession.IP_in, IP_out = newsession.IP_out, Port_in = newsession.Port_in, Port_out = newsession.Port_out };
+
                 //So sánh dữ liệu hiện tại có thuộc session nào không, nếu không thì tạo mới session, có thì chỉ add detail vào season
-                //if (!Selected_session_ip_port.Contains(New_session_ip_port,new Selected_session_Comparer()))
-                if (old_session_id == null)
+                if (!Selected_session_ip_port.Contains(New_session_ip_port, new Selected_session_Comparer()))
                 {
                     //add new session
                     ObjectParameter new_session_id = new ObjectParameter("SessionID", typeof(long));
@@ -93,16 +49,16 @@ namespace WpfApplication1.Database
                         , newdetail.UpdateTime
                         , newdetail.KeyData
                         , newdetail.TextData
-                      //  , newdetail.BinData
+                        //  , newdetail.BinData
                         , new_detail_id);
                 }
                 else
                 {
                     //Lấy SessionID của session đã tồn tại.
-                    //var old_session_id = (from s in _data.Sessions
-                    //                      where ((s.IP_in == newsession.IP_in && s.IP_out == newsession.IP_out && s.Port_in == newsession.Port_in && s.Port_out == newsession.Port_out) 
-                    //                     || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
-                    //                      select s.SessionID).First();
+                    var old_session_id = (from s in _data.Sessions
+                                          where ((s.IP_in == newsession.IP_in && s.IP_out == newsession.IP_out && s.Port_in == newsession.Port_in && s.Port_out == newsession.Port_out)
+                                          || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
+                                          select s.SessionID).First();
                     //add detail vào session
                     long detailid = _data.NT_add_detail(old_session_id
                         , newdetail.UpdateTime
@@ -170,20 +126,18 @@ namespace WpfApplication1.Database
             }
         }
     }
-    class Selected_session_Comparer : IEqualityComparer<Session>
+    class Selected_session_Comparer : IEqualityComparer<Selected_sessions>
     {
-        public bool Equals(Session x, Session y)
+        public bool Equals(Selected_sessions x, Selected_sessions y)
         {
-            if ((x.IP_in == y.IP_in && x.IP_out == y.IP_out && x.Port_in == y.Port_in && x.Port_out == y.Port_out) 
+            if ((x.IP_in == y.IP_in && x.IP_out == y.IP_out && x.Port_in == y.Port_in && x.Port_out == y.Port_out)
                 || (x.IP_in == y.IP_out && x.IP_out == y.IP_in && x.Port_in == y.Port_out && x.Port_out == y.Port_in))
                 return true;
             return false;
         }
-        public int GetHashCode(Session obj)
+        public int GetHashCode(Selected_sessions obj)
         {
             return obj.GetHashCode();
         }
-    }
-    */
     }
 }

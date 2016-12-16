@@ -3,16 +3,16 @@ namespace WpfApplication1.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class newMAC : DbMigration
+    public partial class v1 : DbMigration
     {
         public override void Up()
         {
-            AlterColumn("dbo.Sessions", "MAC_in", c => c.String(nullable: false, maxLength: 32));
+            AlterColumn("dbo.Details", "BinData", c => c.String());
         }
         
         public override void Down()
         {
-            AlterColumn("dbo.Sessions", "MAC_in", c => c.String());
+            AlterColumn("dbo.Details", "BinData", c => c.Binary());
         }
     }
 }

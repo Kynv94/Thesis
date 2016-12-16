@@ -78,3 +78,10 @@ E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.dll
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.dll
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.xml
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.xml
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.dll
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.dll
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.pdb
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.xml
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.pdb
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.xml
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v1.resources

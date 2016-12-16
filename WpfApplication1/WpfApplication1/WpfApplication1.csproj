@@ -103,13 +103,16 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Class1.cs" />
+    <Compile Include="Database\Context.cs" />
+    <Compile Include="Database\Detail.cs" />
+    <Compile Include="Database\HandleDatabase.cs" />
+    <Compile Include="Database\Session.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

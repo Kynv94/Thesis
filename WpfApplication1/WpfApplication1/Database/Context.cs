@@ -7,7 +7,7 @@
 
     public partial class Context : DbContext
     {
-        public Context() : base("NetToughDatabase")
+        public Context() : base("NetTough_Database")
         { }
         public virtual DbSet<Detail> Details { get; set; }
         public virtual DbSet<Session> Sessions { get; set; }
@@ -20,14 +20,14 @@
                 .Property(e => e.IP_in)
                 .IsUnicode(false);
             //modelBuilder.Entity<Session>()
-              //  .Property(e => e.IP_in_bin)
-                //.IsFixedLength();
+            //  .Property(e => e.IP_in_bin)
+            //.IsFixedLength();
             modelBuilder.Entity<Session>()
                 .Property(e => e.IP_out)
                 .IsUnicode(false);
             //modelBuilder.Entity<Session>()
-              //  .Property(e => e.IP_out_bin)
-                //.IsFixedLength();
+            //  .Property(e => e.IP_out_bin)
+            //.IsFixedLength();
             modelBuilder.Entity<Session>()
                 .HasMany(e => e.Details)
                 .WithRequired(e => e.Session)
@@ -83,9 +83,9 @@
                 new ObjectParameter("Textdata", textdata) :
                 new ObjectParameter("Textdata", typeof(string));
 
-       //     var bindataParameter = bindata != null ?
-         //       new ObjectParameter("Bindata", bindata) :
-           //     new ObjectParameter("Bindata", typeof(byte[]));
+            //     var bindataParameter = bindata != null ?
+            //       new ObjectParameter("Bindata", bindata) :
+            //     new ObjectParameter("Bindata", typeof(byte[]));
 
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("NT_add_detail", sessIDParameter, updateTimeParameter, keydataParameter, textdataParameter, newID);
         }

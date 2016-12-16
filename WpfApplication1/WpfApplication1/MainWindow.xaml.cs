@@ -1,18 +1,13 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using System.ComponentModel;
+using System.Net;
 using System.Windows.Data;
-using PcapDotNet.Packets.IpV4;
-using PcapDotNet.Packets.Transport;
-using PcapDotNet.Packets.Http;
-using System.IO;
-using System.Linq;
-using System.IO.Compression;
-using System.Text;
 using LiveCharts;
 using LiveCharts.Wpf;
 using System.Windows.Media;
@@ -25,13 +20,31 @@ namespace WpfApplication1
 
     public partial class MainWindow : Window
     {
-
+        struct Data
+        {
+            public Database.Session data_session;
+            public Database.Detail data_detail;
+        };
         IList<LivePacketDevice> allDevices;
-        List<Packet> list_packet = new List<Packet>();
+        List<Data> List_data1 = new List<Data> { };
+        //List<Database.Session> List_session2 = new List<Database.Session>;
+        Database.HandleDatabase db = new Database.HandleDatabase();
         public MainWindow()
         {
             InitializeComponent();
-
+            /* Database.Session ss = new Database.Session { IP_in = "192.168.1.1",
+                 IP_out = "192.168.1.2",
+                 Port_in = 80,
+                 Port_out = 443,
+                 SessionID = 5,
+                 Started = DateTime.Now,
+                 Ended = DateTime.Now,
+                 MAC_in = "4124214"};
+             using (Database.Context ct = new Database.Context())
+             {
+                 ct.Sessions.Add(ss);
+                 ct.SaveChanges();
+             }*/
             // Retrieve the device list from the local machine
             allDevices = LivePacketDevice.AllLocalMachine;
             if (allDevices.Count == 0)
@@ -44,7 +57,7 @@ namespace WpfApplication1
                 result = MessageBox.Show(message, caption, buttons);
                 return;
             }
-
+            //Database.Session ss = new Database.Session
             // Print the list
             for (int i = 0; i != allDevices.Count; ++i)
             {
@@ -54,10 +67,21 @@ namespace WpfApplication1
                     name_device += device.Description;
                 cbDevice.Items.Add(name_device);
             }
+
+
+            //collview_packet.Filter += Filter_FTP;
         }
 
+        private bool Filter_Web(object item)
+        {
+            if (cb_web.IsChecked == false)
+                return true;
+            Packet packet = item as Packet;
+            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
+            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
+            return (port_src == 443 || port_src == 80 || port_des == 443 || port_des == 80);
+        }
         public PacketDevice selectedDevice;
-
         private void cbDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
@@ -96,8 +120,18 @@ namespace WpfApplication1
                         return;
                     }
                     // start the capture
-                    // collview_packet.CollectionViewType = typeof(ListCollectionView);
                     communicator.ReceivePackets(0, PacketHandler);
+                    //kiểm tra nếu List có đủ hơn 300 gói đã bắt
+
+                    if (List_data1.Count >= 300)
+                    {
+                        //copy sang một mảng khác rồi xóa List
+                        Data[] List_data2 = new Data[List_data1.Count];
+                        List_data1.CopyTo(List_data2);
+                        List_data1.Clear();
+                        foreach (var item in List_data2)
+                            db.Add_data(item.data_session, item.data_detail);
+                    }
 
                 }
             }
@@ -106,46 +140,56 @@ namespace WpfApplication1
                 throw ex;
             }
         }
-
-        private CollectionViewSource collview_packet = new CollectionViewSource();
-
-        private void Filter_Web(object sender, FilterEventArgs e)
-        {
-            if (cb_web.IsChecked == false)
-                e.Accepted &= true;
-            Packet packet = e.Item as Packet;
-            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
-            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
-            e.Accepted &= (port_src == 443 || port_src == 80 || port_des == 443 || port_des == 80);
-        }
-
-        private void Filter_FTP(object sender, FilterEventArgs e)
-        {
-            if (cb_ftp.IsChecked == false)
-                e.Accepted &= true;
-            Packet packet = e.Item as Packet;
-            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
-            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
-            e.Accepted &= (port_src == 21 || port_des == 21);
-        }
-
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
         {
-           
+
             lv_packet.Dispatcher.Invoke(() =>
             {
                 // Add packet to the gridview
-                
-                lv_packet.Items.Add(packet);
-                // lv_packet.ItemsSource = lv_packet.Items;
-                //Create collection packet
-                //collview_packet.Source = lv_packet.Items as ICollectionView;
-                //collview_packet.Filter += new FilterEventHandler(Filter_Web);
-                //collview_packet.Filter += new FilterEventHandler(Filter_FTP);
+                //lv_packet.Items.Add(packet);
 
+                Database.Session new_session = new Database.Session();
+                Database.Detail new_detail = new Database.Detail();
+                Data data_packet;
+                add_information(new_session, new_detail, packet);
+                data_packet.data_session = new_session;
+                data_packet.data_detail = new_detail;
+                List_data1.Add(data_packet);
+                //db.Add_data(new_session, new_detail);
+                if (List_data1.Count >= 300)
+                {
+                    //copy sang một mảng khác rồi xóa List
+                    Data[] List_data2 = new Data[List_data1.Count];
+                    List_data1.CopyTo(List_data2);
+                    List_data1.Clear();
+                    foreach (var item in List_data2)
+                        db.Add_data(item.data_session, item.data_detail);
+                }
+                //collview_packet = CollectionViewSource.GetDefaultView(lv_packet.Items);
+                //collview_packet.Filter = new Predicate<object>(Filter_Web);
             });
-            
+
+        }
+        private void add_information(Database.Session _session, Database.Detail _detail, Packet _packet)
+        {
+            if (_packet.IpV4.Source != null)
+                _session.IP_in = _packet.IpV4.Source.ToString();
+            else
+                _session.IP_in = "0.0.0.0";
+            if (_packet.IpV4.Destination != null)
+                _session.IP_in = _packet.IpV4.Destination.ToString();
+            else
+                _session.IP_in = "0.0.0.0";
+            _session.Port_in = _packet.IpV4.Tcp.SourcePort;
+            _session.Port_out = _packet.IpV4.Tcp.DestinationPort;
+            _session.MAC_in = _packet.Ethernet.Source.ToString();
+            _session.Started = _packet.Timestamp;
+            //Phaan biet theo port
+            _detail.UpdateTime = _packet.Timestamp;
+            _detail.KeyData = Dns.GetHostEntry(_session.IP_out).HostName;
+            if (_packet.Ethernet.IpV4.Tcp.Payload != null)
+                _detail.TextData = _packet.Ethernet.IpV4.Tcp.Payload.Decode(Encoding.UTF8);
         }
 
         private void Start_Btn(object sender, RoutedEventArgs e)
@@ -155,7 +199,7 @@ namespace WpfApplication1
             cbDevice.IsEnabled = false;
             Start_Button.IsEnabled = false;
             Stop_Button.IsEnabled = true;
-            
+
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
@@ -185,25 +229,44 @@ namespace WpfApplication1
             if (e.AddedItems.Count == 0)
                 return;
             Packet packet = e.AddedItems[0] as Packet;
+            //Stack_Info.Children.Clear();
+
+            //TextBlock tbFrame = new TextBlock();
+            //tbFrame.Text = "Frame:" + packet.Count + " byte(s)";
+
+            //StackPanel_Add(Stack_Info, new List<UIElement> { tbFrame });
+            // Expander Ethernet
+            //Expander exEthernet = new Expander();
+            //exEthernet.Header = "Ethernet";
+
+            //StackPanel stack_Ethernet = new StackPanel();
+            //TextBlock tbMacSrc = new TextBlock(), 
+            //          tbMacDes = new TextBlock(),
+            //          tbType = new TextBlock();
+            //tbMacSrc.Text = "Mac Address Source: " + (packet.Ethernet.Source.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Source.ToString());
+            //tbMacDes.Text = "Mac Address Destination: " + (packet.Ethernet.Destination.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Destination.ToString());
+            //tbType.Text = "Type: " + packet.Ethernet.EtherType.ToString();
+            //StackPanel_Add(stack_Ethernet, new List<UIElement> { tbMacSrc, tbMacDes, tbType });
+            //exEthernet.Content = stack_Ethernet;
 
             try
             {
 
                 // Expander Http Header
-                
-                sv_body.Content = packet.Ethernet.IpV4.Tcp.Http;
+                tab_httpheader.Content = null;
                 if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
                 {
                     //Expander exHTTPHeader = new Expander();
                     //exHTTPHeader.Header = "HTTP Header";
 
+                    TextBlock tbHTTPHeader = new TextBlock();
 
-                    sv_httpheader.Content = packet.Ethernet.IpV4.Tcp.Http.Header;
-                    
+                    tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
+
                     //exHTTPHeader.Content = tbHTTPHeader;
 
                     //StackPanel_Add(Stack_Info, new List<UIElement> { tbHTTPHeader });
-
+                    tab_httpheader.Content = tbHTTPHeader;
                 }
             }
             catch (Exception ex)
@@ -211,64 +274,6 @@ namespace WpfApplication1
                 Console.WriteLine("------" + ex);
                 throw ex;
             }
-
-
-            //IpV4Datagram ip = packet.Ethernet.IpV4;
-            //TcpDatagram tcp = ip.Tcp;
-            //HttpDatagram http = tcp.Http;
-            //string httpBody = "";
-            //string httpHeader = "";
-
-            //try
-            //{
-            //    // parse packet
-            //    if (tcp.IsValid && tcp.PayloadLength > 0)
-            //    {
-            //        // pull the payload 
-            //        Datagram dg = tcp.Payload;
-            //        MemoryStream ms = dg.ToMemoryStream();
-            //        StreamReader sr = new StreamReader(ms);
-            //        string content = sr.ReadToEnd();
-
-            //        // skip if encrypted / non parsable
-            //        if (content.IndexOf("HTTP") == -1) { continue; }
-
-            //        // parse out header
-            //        int endHeader = content.IndexOf("\r\n\r\n");
-            //        if (endHeader == -1) { throw new System.Exception("Cant discern header breakpoint."); }
-            //        httpHeader = content.Substring(0, endHeader);
-
-            //        // parse out body
-            //        // but make sure it isn't just composed of only the CRLF CRLF breaks
-            //        if (http.Body != null && (content.Length - endHeader > 4))
-            //        {
-            //            // we have some body content
-            //            // parse out and decompress if necessary
-            //            Stream bodyStream = new MemoryStream(http.Body.ToArray());
-            //            if (http.Header.ToString().ToLower().Contains("content-encoding: gzip"))
-            //            {
-            //                bodyStream = new GZipStream(bodyStream, CompressionMode.Decompress);
-            //            }
-            //            if (http.Header.ToString().ToLower().Contains("content-encoding: deflate"))
-            //            {
-            //                bodyStream = new DeflateStream(bodyStream, CompressionMode.Decompress);
-            //            }
-
-            //            // ERROR: for gzip streams, getting:
-            //            // "The magic number in GZip header is not correct. Make sure you are passing in a GZip stream."
-            //            // works fine for non-encrypted streams
-            //            byte[] bodyBytes = StreamReader(bodyStream);
-            //            httpBody = Encoding.UTF8.GetString(bodyBytes);
-            //            sv_body.Content = httpBody;
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw ex;
-            //}
-
-            
         }
 
         private void cbweb_changed(object sender, RoutedEventArgs e)

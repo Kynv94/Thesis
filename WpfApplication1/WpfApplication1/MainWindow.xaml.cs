@@ -20,32 +20,12 @@ namespace WpfApplication1
 
     public partial class MainWindow : Window
     {
-        struct Data
-        {
-            public Database.Session data_session;
-            public Database.Detail data_detail;
-        };
         IList<LivePacketDevice> allDevices;
-        List<Data> List_data1 = new List<Data> { };
-        //List<Database.Session> List_session2 = new List<Database.Session>;
-
-        Database.DatabaseHandle db = new Database.DatabaseHandle();
+        List<Packet> list_new_packet = new List<Packet>();
+        Database.HandleDatabase db = new Database.HandleDatabase();
         public MainWindow()
         {
             InitializeComponent();
-            /* Database.Session ss = new Database.Session { IP_in = "192.168.1.1",
-                 IP_out = "192.168.1.2",
-                 Port_in = 80,
-                 Port_out = 443,
-                 SessionID = 5,
-                 Started = DateTime.Now,
-                 Ended = DateTime.Now,
-                 MAC_in = "4124214"};
-             using (Database.Context ct = new Database.Context())
-             {
-                 ct.Sessions.Add(ss);
-                 ct.SaveChanges();
-             }*/
             // Retrieve the device list from the local machine
             allDevices = LivePacketDevice.AllLocalMachine;
             if (allDevices.Count == 0)
@@ -124,14 +104,13 @@ namespace WpfApplication1
                     communicator.ReceivePackets(0, PacketHandler);
                     //kiểm tra nếu List có đủ hơn 300 gói đã bắt
 
-                    if (List_data1.Count >= 300)
+                    if (list_new_packet.Count >= 300)
                     {
-                        //copy sang một mảng khác rồi xóa List
-                        Data[] List_data2 = new Data[List_data1.Count];
-                        List_data1.CopyTo(List_data2);
-                        List_data1.Clear();
-                        foreach (var item in List_data2)
-                            db.Add_data(item.data_session, item.data_detail);
+                        Packet[] list_newpacket2 = new Packet[list_new_packet.Count];
+                        list_new_packet.CopyTo(list_newpacket2);
+                        list_new_packet.Clear();
+                        foreach (var item in list_new_packet)
+                            HandlePacket.add_informationv2(item);
                     }
 
                 }
@@ -147,28 +126,13 @@ namespace WpfApplication1
 
             lv_packet.Dispatcher.Invoke(() =>
             {
-                // Add packet to the gridview
-                //lv_packet.Items.Add(packet);
-
-                Database.Session new_session = new Database.Session();
-                Database.Detail new_detail = new Database.Detail();
-                Data data_packet;
-                add_information(new_session, new_detail, packet);
-                data_packet.data_session = new_session;
-                data_packet.data_detail = new_detail;
-                List_data1.Add(data_packet);
-                //db.Add_data(new_session, new_detail);
-                if (List_data1.Count >= 300)
+                if (!packet.Ethernet.Ip.IsValid || !packet.Ethernet.Arp.IsValid)
                 {
-                    //copy sang một mảng khác rồi xóa List
-                    Data[] List_data2 = new Data[List_data1.Count];
-                    List_data1.CopyTo(List_data2);
-                    List_data1.Clear();
-                    foreach (var item in List_data2)
-                        db.Add_data(item.data_session, item.data_detail);
                 }
-                //collview_packet = CollectionViewSource.GetDefaultView(lv_packet.Items);
-                //collview_packet.Filter = new Predicate<object>(Filter_Web);
+                else
+                {
+                    list_new_packet.Add(packet);
+                }
             });
 
         }

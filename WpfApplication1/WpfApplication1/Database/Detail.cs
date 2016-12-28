@@ -7,6 +7,7 @@
         [Key]
         public long Det_ID { get; set; }
         public long SessionID { get; set; }
+        public int PluginID { get; set; }
         public DateTime UpdateTime { get; set; }
         [StringLength(1000)]
         public string KeyData { get; set; }

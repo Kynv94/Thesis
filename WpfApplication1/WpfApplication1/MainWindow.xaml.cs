@@ -254,7 +254,11 @@ namespace WpfApplication1
         {
             string ip_src = cb_ipadd_input.SelectedItem.ToString() ?? string.Empty;
             DateTime date_from = dp_from.SelectedDate.Value;
-            DateTime date_to = dp_to.SelectedDate.Value;
+            DateTime date_to = DateTime.Now;
+            if (dp_to.SelectedDate.Value != DateTime.Today)
+            {
+                date_to = dp_to.SelectedDate.Value;
+            }
             List<long> protocol = new List<long>();
             if (cb_web.IsChecked == true)
                 protocol.InsertRange(protocol.Count, new long[] { 443, 80 });

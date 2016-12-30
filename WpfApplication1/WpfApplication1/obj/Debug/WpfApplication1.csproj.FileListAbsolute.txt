@@ -67,7 +67,6 @@ D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Ent
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.dll
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.xml
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.xml
-E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.dll
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.dll
 E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.pdb
@@ -85,3 +84,6 @@ D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Liv
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.pdb
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.xml
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v1.resources
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v4.resources
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v5.resources

@@ -29,12 +29,22 @@ namespace WpfApplication1
             {
                 //Ipv4
                 case 2048:
-                    add_new_packet(new_session, new_detail, packet.Ethernet.IpV4);
-                    break;
+                    {
+                        add_new_packet(new_session, new_detail, packet.Ethernet.IpV4);
+                        break;
+                    }
                 //Address Resolution Protocol
-                case 2054: add_new_packet(new_session, new_detail, packet.Ethernet.Arp); break;
+                case 2054:
+                    {
+                        add_new_packet(new_session, new_detail, packet.Ethernet.Arp);
+                        break;
+                    }
                 //Ipv6
-                case 34525: add_new_packet(new_session, new_detail, packet.Ethernet.IpV6); break;
+                case 34525:
+                    {
+                        add_new_packet(new_session, new_detail, packet.Ethernet.IpV6);
+                        break;
+                    }
                 default:
                     {
                         new_session = null;
@@ -57,9 +67,23 @@ namespace WpfApplication1
             new_session.IP_out = ipv4_packet.Destination.ToString() ?? "0.0.0.0";
             new_session.IP_out_is_v4 = true;
             //Source Port
-            new_session.Port_in = ipv4_packet.Transport.SourcePort;
+            try
+            {
+                new_session.Port_in = ipv4_packet.Transport.SourcePort;
+            }
+            catch (Exception)
+            {
+                new_session.Port_in = 0;
+            }
             //Destination port
-            new_session.Port_out = ipv4_packet.Transport.DestinationPort;
+            try
+            {
+                new_session.Port_out = ipv4_packet.Transport.DestinationPort;
+            }
+            catch (Exception)
+            {
+                new_session.Port_out = 0;
+            }
             switch (ipv4_packet.Protocol.GetHashCode()) //add SSL, state, Detail 
             {
                 //Tcp
@@ -73,6 +97,7 @@ namespace WpfApplication1
                             //state - new thread
                             Session oldsession = db.get_old_session(new_session);
                             new_session.State = 0; //unknown state
+
                             int oldsession_state;
                             if (oldsession == null)
                                 oldsession_state = 0;
@@ -332,9 +357,9 @@ namespace WpfApplication1
             //BinData
             new_detail.BinData = tcp_packet.Payload.ToHexadecimalString() ?? string.Empty;
             //KeyData, TextData
-            detail_tcp_data(new_detail, tcp_packet);
+            detail_tcp_data(new_detail, new_session, tcp_packet);
         }
-        private static void detail_tcp_data(Detail new_detail, TcpDatagram tcp)
+        private static void detail_tcp_data(Detail new_detail, Session new_session, TcpDatagram tcp)
         {
             //Keydata, TextData
             switch (new_detail.PluginID)
@@ -355,49 +380,75 @@ namespace WpfApplication1
                             new_detail.TextData = request.Decode(Encoding.UTF8) ?? string.Empty;
 
                             //KeyData
-                            string str = request.Header.ToString().ToLower();
-                            if (str.Contains("referer:"))
+                            //if (request.Header != null)
+                            try
                             {
-                                var index1 = str.IndexOf("referer:");
-                                var index2 = str.IndexOf(' ', index1);
-                                new_detail.KeyData = str.Substring(index2 + 1, str.IndexOf(Environment.NewLine, index2 + 1) - index2) ?? string.Empty;
-                                break;
+                                string str = request.Header.ToString().ToLower();
+                                if (str.Contains("referer:"))
+                                {
+                                    var index1 = str.IndexOf("referer:");
+                                    var index2 = str.IndexOf(' ', index1);
+                                    new_detail.KeyData = str.Substring(index2 + 1, str.IndexOf(Environment.NewLine, index2 + 1) - index2) ?? string.Empty;
+                                    break;
+                                }
+                                if (str.Contains("host:"))
+                                {
+                                    var index1 = str.IndexOf("host:");
+                                    var index2 = str.IndexOf(' ', index1);
+                                    new_detail.KeyData = str.Substring(index2 + 1, str.IndexOf(Environment.NewLine, index2 + 1) - index2) ?? string.Empty;
+                                    break;
+                                }
+                                
                             }
-                            if (str.Contains("host:"))
+                            //else
+                            catch(Exception)
                             {
-                                var index1 = str.IndexOf("host:");
-                                var index2 = str.IndexOf(' ', index1);
-                                new_detail.KeyData = str.Substring(index2 + 1, str.IndexOf(Environment.NewLine, index2 + 1) - index2) ?? string.Empty;
-                                break;
+                                new_detail.KeyData = request.Uri ?? string.Empty;
                             }
-                            new_detail.KeyData = request.Uri ?? string.Empty;
                             break;
                         }
                         else
                         {
+                            
                             HttpResponseDatagram respond = (HttpResponseDatagram)tcp.Http;
 
                             //TextData
                             new_detail.TextData = respond.Decode(Encoding.UTF8) ?? string.Empty;
 
                             //Keydata
-                            string str = respond.Header.ToString().ToLower();
-                            if (str.Contains("Server"))
+                            try
                             {
-                                var index = str.IndexOf(' ');
-                                new_detail.KeyData = respond.Header.ToString().Substring(index + 1, str.IndexOf(Environment.NewLine) - index) ?? string.Empty;
-                                break;
+                                string str = respond.Header.ToString().ToLower();
+                                if (str.Contains("Server"))
+                                {
+                                    var index = str.IndexOf(' ');
+                                    new_detail.KeyData = respond.Header.ToString().Substring(index + 1, str.IndexOf(Environment.NewLine) - index) ?? string.Empty;
+                                    break;
+                                }
+                                else
+                                    new_detail.KeyData = string.Empty;
                             }
-                            else
+                            catch(Exception)
+                            {
                                 new_detail.KeyData = string.Empty;
+                            }
+                            
                             break;
                         }
                     }
                 case 443:
                     {
-                        //TextData
+                        //TextData Keydata
+                        try
+                        {
+                            new_detail.KeyData = Dns.GetHostEntry(new_session.IP_out).HostName;
+                        }
+                        catch(Exception)
+                        {
+                            new_detail.KeyData = new_session.IP_out;
+                        }
+
                         new_detail.TextData = string.Empty;
-                        new_detail.KeyData = string.Empty;
                         break;
                     }
 
@@ -406,8 +457,6 @@ namespace WpfApplication1
                         PortService ps = new PortService();
                         //KeyData
                         new_detail.KeyData = ps.GetServiceName(new_detail.PluginID) ?? string.Empty;
-                        //BinData
-                        new_detail.BinData = tcp.ToHexadecimalString() ?? string.Empty;
                         //TextData
                         new_detail.TextData = tcp.Payload.Decode(Encoding.UTF8) ?? string.Empty;
                         break;
@@ -435,10 +484,11 @@ namespace WpfApplication1
                 //KeyData
                 new_detail.KeyData = "Domain Name Service";
                 //TextData
-                if (udp_packet.Dns.IsQuery)
-                    new_detail.TextData = "DNS Query";
-                if (udp_packet.Dns.IsResponse)
-                    new_detail.TextData = "DNS Respond";
+                //if (udp_packet.Dns.IsQuery)
+                //    new_detail.TextData = "DNS Query";
+                //if (udp_packet.Dns.IsResponse)
+                //    new_detail.TextData = "DNS Respond";
+                new_detail.TextData = udp_packet.Dns.Decode(Encoding.UTF8) ?? string.Empty;
             }
             else
             {
@@ -489,8 +539,18 @@ namespace WpfApplication1
             new_session.IP_in_is_v4 = false;
             new_session.IP_out = ipv6_packet.CurrentDestination.ToString();
             new_session.IP_out_is_v4 = false;
-            new_session.Port_in = ipv6_packet.Transport.SourcePort;
-            new_session.Port_out = ipv6_packet.Transport.DestinationPort;
+            try
+            {
+                new_session.Port_in = ipv6_packet.Transport.SourcePort;
+            }
+            catch (Exception)
+            { new_session.Port_in = 0; }
+            try
+            {
+                new_session.Port_out = ipv6_packet.Transport.DestinationPort;
+            }
+            catch (Exception)
+            { new_session.Port_out = 0; }
             new_session.IsSSL = false;
             new_session.State = 4;
 

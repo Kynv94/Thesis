@@ -4,8 +4,10 @@
 
     public partial class Context : DbContext
     {
-        public Context() : base("NetTough_Databasev3")
-        { }
+        public Context() : base("NetTough_Databasev4")
+        {
+            this.Configuration.LazyLoadingEnabled = false;
+        }
         public virtual DbSet<Detail> Details { get; set; }
         public virtual DbSet<Session> Sessions { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

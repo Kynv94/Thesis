@@ -102,22 +102,27 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Class1.cs" />
     <Compile Include="Database\Context.cs" />
     <Compile Include="Database\Detail.cs" />
     <Compile Include="Database\HandleDatabase.cs" />
     <Compile Include="Database\Session.cs" />
+    <Compile Include="HandlePacket.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\201612161335302_v1.cs" />
-    <Compile Include="Migrations\201612161335302_v1.Designer.cs">
-      <DependentUpon>201612161335302_v1.cs</DependentUpon>
+    <Compile Include="Migrations\201612290846013_v4.cs" />
+    <Compile Include="Migrations\201612290846013_v4.Designer.cs">
+      <DependentUpon>201612290846013_v4.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201612290856169_v5.cs" />
+    <Compile Include="Migrations\201612290856169_v5.Designer.cs">
+      <DependentUpon>201612290856169_v5.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Database\PortService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -131,8 +136,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Migrations\201612161335302_v1.resx">
-      <DependentUpon>201612161335302_v1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201612290846013_v4.resx">
+      <DependentUpon>201612290846013_v4.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201612290856169_v5.resx">
+      <DependentUpon>201612290856169_v5.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

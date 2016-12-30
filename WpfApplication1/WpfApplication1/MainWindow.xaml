@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApplication1"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowState="Maximized">
@@ -30,7 +31,7 @@
                     <ListView 
                         Margin = "0,5,0,0" x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
                         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
-                        ScrollViewer.CanContentScroll="True"
+                        ScrollViewer.CanContentScroll="True" SelectionMode="Single"
                         SelectionChanged="lv_packet_SelectionChanged" Grid.Row="1">
                         <ListView.Resources>
                             <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -41,35 +42,32 @@
 
                             <GridView>
 
+                                <GridViewColumn Header = "ID" 
+                                    DisplayMemberBinding = "{Binding Id}" Width= "50"/>
+
                                 <GridViewColumn Header = "Date" 
-                                    DisplayMemberBinding = "{Binding Timestamp}" Width= "150"/>
+                                    DisplayMemberBinding = "{Binding Date}" Width= "150"/>
+
+                                <GridViewColumn Header = "Last Update" 
+                                    DisplayMemberBinding = "{Binding UpdateTime}" Width= "150"/>
 
                                 <GridViewColumn Header = "Protocol" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Protocol}" Width= "130"/>
+                                    DisplayMemberBinding = "{Binding Protocol}" Width= "130"/>
 
-                                <GridViewColumn Header = "Byte(s)" 
-                                    DisplayMemberBinding = "{Binding Count}" Width= "100"/>
-
-                                <GridViewColumn Header = "MAC Source" 
-                                    DisplayMemberBinding = "{Binding Ethernet.Source}" Width="150"/>
-
-                                <GridViewColumn Header = "IP Source" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Source}" Width="150"/>
+                                <GridViewColumn Header = "Party A" 
+                                    DisplayMemberBinding = "{Binding PartyA}" Width="150"/>
 
                                 <GridViewColumn Header = "Port A" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.SourcePort}" Width= "70"/>
+                                    DisplayMemberBinding = "{Binding PortA}" Width= "70"/>
 
-                                <GridViewColumn Header = "MAC Destination" 
-                                    DisplayMemberBinding = "{Binding Ethernet.Destination}" Width="150"/>
-
-                                <GridViewColumn Header = "IP Destination" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Destination}" Width= "150"/>
+                                <GridViewColumn Header = "Party B" 
+                                    DisplayMemberBinding = "{Binding PartyB}" Width="150"/>
 
                                 <GridViewColumn Header = "Port B" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.DestinationPort}" Width= "70"/>
+                                    DisplayMemberBinding = "{Binding PortB}" Width= "70"/>
 
                                 <GridViewColumn Header = "Info" 
-                                    DisplayMemberBinding = "{Binding Ethernet.IpV4.Tcp.Http.Header}" Width= "70"/>
+                                    DisplayMemberBinding = "{Binding Info}" Width= "300"/>
 
                             </GridView>
 
@@ -78,29 +76,30 @@
                     </ListView>
                     <GridSplitter x:Name="gridSplitter6" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" Grid.Row="2" Height="5" VerticalAlignment="Top"/>
                     <TabControl x:Name="tab_Info" Margin="0,5,0,0" Grid.Row="2">
-                        <TabItem x:Name="tab_httpheader" Header="HTTP Header" Margin="-2,-1,1,-1">
-                            <ScrollViewer x:Name="sv_httpheader" />
-                        </TabItem>
-                        <TabItem x:Name="tab_body" Header="Body" Margin="-2,-1,1,-1">
-                            <ScrollViewer x:Name="sv_body" Margin="0,0,0,162" />
+                        <TabItem x:Name="tab_discription" Header="Discription" Margin="-2,-1,1,-1">
+                            <ScrollViewer x:Name="sv_discription" />
                         </TabItem>
                     </TabControl>
                     <TabControl x:Name="tabControl_Copy" Margin="0">
-                        <TabItem x:Name="tab_view" Header="View" Height="22" VerticalAlignment="Top" Margin="-2,-2,-2,0">
+                        <TabItem x:Name="tab_view" Header="Control" Height="22" VerticalAlignment="Bottom" Margin="-2,-2,-2,2">
                             <Grid Background="#FFE5E5E5">
-                                <ComboBox x:Name="cbDevice" Text="--Select device--" SelectionChanged="cbDevice_SelectionChanged" Margin="62,10,0,0" VerticalAlignment="Top" Height="20" HorizontalAlignment="Left" Width="160"/>
-                                <Button x:Name="Stop_Button" Content="Stop" Margin="302,10,0,0" VerticalAlignment="Top" Height="20" Click="Stop_Btn" HorizontalAlignment="Left" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" RenderTransformOrigin="1.033,0.775">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="405"/>
+                                    <ColumnDefinition Width="333"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="btn_import" Content="Import" Margin="30,5,0,0" Grid.Column="1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                <ComboBox x:Name="cb_device" Text="--Select device--" SelectionChanged="cb_device_SelectionChanged" Margin="60,24,0,0" VerticalAlignment="Top" Height="26" HorizontalAlignment="Left" Width="174"/>
+                                <Button x:Name="btn_stop" Content="Stop" IsEnabled="False" Margin="330,11,0,0" Height="50" Click="Stop_Btn" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" RenderTransformOrigin="1.033,0.775" HorizontalAlignment="Left" VerticalAlignment="Top">
                                     <Button.Background>
                                         <ImageBrush/>
                                     </Button.Background>
                                 </Button>
-                                <Button x:Name="Start_Button" Content="Start" Margin="252,10,0,0" Height="20" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="30" HorizontalContentAlignment="Left" VerticalContentAlignment="Top">
+                                <Button x:Name="btn_start" Content="Start" IsEnabled="False" Margin="256,11,0,0" Height="50" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                                     <Button.Background>
                                         <ImageBrush/>
                                     </Button.Background>
                                 </Button>
-
-                                <Label x:Name="label" Content="Device" Margin="8,6,0,0" Height="27" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                <Label x:Name="label_device" Content="Device" Margin="10,24,0,0" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Width="45"/>
                             </Grid>
                         </TabItem>
                         <TabItem Header="Filter" Margin="3,-2,-7,0">
@@ -112,18 +111,29 @@
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <!-- Filter Mac -->
-                                <ToggleButton x:Name ="btn_mac" Content="Mac" Margin="0" BorderBrush="{x:Null}" Foreground="Black" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Background="#FFE5E5E5"/>
+                                <ToggleButton x:Name ="btn_filter_ipsrc" Content="IP Source" Margin="0" BorderBrush="{x:Null}" Foreground="Black" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Background="#FFE5E5E5"/>
+                                <Popup x:Name="popup_filter_ipsrc" IsOpen="{Binding IsChecked, ElementName=btn_filter_ipsrc}" 
+                                    PlacementTarget="{Binding ElementName=btn_filter_ipsrc}" StaysOpen="False">
+                                    <Grid Background="White" Height="80" VerticalAlignment="Top" Width="200">
+                                        <Border Background="White" BorderThickness="1" BorderBrush="Black" />
+                                        <Label x:Name="lb_ipadd" Content="IP Address:" Margin="10,10,106,45"/>
+                                        <ComboBox x:Name="cb_ipadd_input" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="180"/>
+                                        <!--<TextBox x:Name="tb_ipadd_input" HorizontalAlignment="Left" Height="23" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180"/>-->
+
+
+                                    </Grid>
+                                </Popup>
 
                                 <!-- Filter Time -->
-                                <ToggleButton x:Name ="btn_filter_time" Content="Time " Margin="0" Background="#FFE5E5E5" BorderBrush="{x:Null}" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Grid.Column="1"/>
+                                <ToggleButton x:Name ="btn_filter_time" Content="Time" Margin="0" Background="#FFE5E5E5" BorderBrush="{x:Null}" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Grid.Column="1"/>
                                 <Popup x:Name="popup_filter_time" IsOpen="{Binding IsChecked, ElementName=btn_filter_time}" 
                                     PlacementTarget="{Binding ElementName=btn_filter_time}" StaysOpen="False">
                                     <Grid Background="White" Height="80" VerticalAlignment="Top" Width="200">
                                         <Border Background="White" BorderThickness="1" BorderBrush="Black" />
                                         <Label Content="From: " Margin="0,10,152,0" Height="28" VerticalAlignment="Top"/>
                                         <Label Content="To: " Margin="0,45,152,10"/>
-                                        <DatePicker HorizontalAlignment="Left" Margin="53,10,0,0" VerticalAlignment="Top" Width="137"/>
-                                        <DatePicker HorizontalAlignment="Left" Margin="53,47,0,0" VerticalAlignment="Top" Width="137"/>
+                                        <DatePicker Name="dp_from" SelectedDate="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" Margin="53,10,0,0" VerticalAlignment="Top" Width="137"/>
+                                        <DatePicker Name="dp_to" SelectedDate="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" Margin="53,47,0,0" VerticalAlignment="Top" Width="137"/>
                                     </Grid>
                                 </Popup>
 
@@ -132,15 +142,17 @@
                                 <Popup x:Name="popup_filter_protocol" IsOpen="{Binding IsChecked, ElementName=btn_filter_protocol}" 
                                     PlacementTarget="{Binding ElementName=btn_filter_protocol}" StaysOpen="False">
                                     <Border Background="White" BorderThickness="1" BorderBrush="Black" Grid.Column="2" Grid.ColumnSpan="2">
-                                        <WrapPanel x:Name="wrap_filter_protocol" Height="80" Width="219" Background="White" Grid.Column="2" Grid.ColumnSpan="2">
-                                            <CheckBox x:Name="cb_web" Content="Web" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" Checked="cbweb_changed" Unchecked="cbweb_changed" />
-                                            <CheckBox x:Name="cb_ftp" Content="FTP" HorizontalAlignment="Left" Margin="70,10,0,0" VerticalAlignment="Top" IsChecked="True" Checked="cbftp_changed" Unchecked="cbftp_changed" />
+                                        <WrapPanel x:Name="wrap_filter_protocol" Height="63" Width="170" Background="White" Grid.Column="2" Grid.ColumnSpan="2">
+                                            <CheckBox x:Name="cb_web" Content="Web" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" />
+                                            <CheckBox x:Name="cb_ftp" Content="FTP" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" IsChecked="True" />
+                                            <CheckBox x:Name="cb_dns" Content="DNS" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" />
+                                            <CheckBox x:Name="cb_mail" Content="Mail" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" IsChecked="True" />
                                         </WrapPanel>
                                     </Border>
                                 </Popup>
 
                                 <!-- Filter Apply -->
-                                <Button x:Name="btn_filter_apply" Content="Apply" Grid.Column="3" Background="#FFE5E5E5" Margin="235,0,351,0" Width="84" BorderBrush="{x:Null}" />
+                                <Button x:Name="btn_filter_apply" Content="Apply" Grid.Column="3" Background="#FFE5E5E5" Margin="70,0,0,0" Width="84" BorderBrush="{x:Null}" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" Height="70" Click="btn_filter_apply_Click" />
 
                             </Grid>
                         </TabItem>
@@ -155,15 +167,6 @@
                         <RowDefinition Height="100*"/>
                         <RowDefinition Height="365*"/>
                     </Grid.RowDefinitions>
-
-                    <TabControl x:Name="tabControl1">
-                        <TabItem Header="TabItem">
-                            <Grid Background="#FFE5E5E5"/>
-                        </TabItem>
-                        <TabItem Header="TabItem">
-                            <Grid Background="#FFE5E5E5" Margin="0"/>
-                        </TabItem>
-                    </TabControl>
 
 
                     <Grid Margin="0,19,0,0" Grid.Row="1">

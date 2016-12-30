@@ -11,6 +11,8 @@ using System.Windows.Data;
 using LiveCharts;
 using LiveCharts.Wpf;
 using System.Windows.Media;
+using WpfApplication1.Database;
+using System.Linq;
 
 namespace WpfApplication1
 {
@@ -22,10 +24,15 @@ namespace WpfApplication1
     {
         IList<LivePacketDevice> allDevices;
         List<Packet> list_new_packet = new List<Packet>();
-        Database.HandleDatabase db = new Database.HandleDatabase();
+        HandleDatabase db = new HandleDatabase();
+        List<string> keys = new List<string>();
         public MainWindow()
         {
             InitializeComponent();
+
+            keys = db.databyPartyA().Select(s => s.Key).ToList();
+            cb_ipadd_input.ItemsSource = keys;
+
             // Retrieve the device list from the local machine
             allDevices = LivePacketDevice.AllLocalMachine;
             if (allDevices.Count == 0)
@@ -46,26 +53,16 @@ namespace WpfApplication1
                 string name_device = device.Name + " ";
                 if (device.Description != null)
                     name_device += device.Description;
-                cbDevice.Items.Add(name_device);
+                cb_device.Items.Add(name_device);
             }
 
-
-            //collview_packet.Filter += Filter_FTP;
         }
 
-        private bool Filter_Web(object item)
-        {
-            if (cb_web.IsChecked == false)
-                return true;
-            Packet packet = item as Packet;
-            int port_src = packet.Ethernet.IpV4.Tcp.SourcePort;
-            int port_des = packet.Ethernet.IpV4.Tcp.DestinationPort;
-            return (port_src == 443 || port_src == 80 || port_des == 443 || port_des == 80);
-        }
+
         public PacketDevice selectedDevice;
-        private void cbDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void cb_device_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            btn_start.IsEnabled = true;
             String text = e.AddedItems[0] as String;
             int deviceIndex;
             for (deviceIndex = 0; deviceIndex != allDevices.Count; ++deviceIndex)
@@ -75,10 +72,10 @@ namespace WpfApplication1
                     break;
             }
             selectedDevice = allDevices[deviceIndex];
-            BasicLine();
         }
 
         public PacketCommunicator communicator;
+        List<Packet> List_2;
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
@@ -104,92 +101,51 @@ namespace WpfApplication1
                     communicator.ReceivePackets(0, PacketHandler);
                     //kiểm tra nếu List có đủ hơn 300 gói đã bắt
 
-                    if (list_new_packet.Count >= 300)
-                    {
-                        Packet[] list_newpacket2 = new Packet[list_new_packet.Count];
-                        list_new_packet.CopyTo(list_newpacket2);
-                        list_new_packet.Clear();
-                        foreach (var item in list_new_packet)
-                            HandlePacket.add_informationv2(item);
-                    }
-
                 }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            catch (Exception) { }
+        }
+
+        void Add_Database(object sender, DoWorkEventArgs e)
+        {
+            foreach (var item in List_2)            
+                HandlePacket.add_informationv2(item);
+            //keys = db.databyPartyA().Select(s => s.Key).ToList();
+            //cb_ipadd_input.ItemsSource = keys;
         }
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
         {
+                     
+            if (packet.Ethernet.Ip == null || packet.Ethernet.Arp == null)
+            {
+            }
+            else
+            {
+                list_new_packet.Add(packet);
+                if (list_new_packet.Count >= 500)
+                {
 
-            lv_packet.Dispatcher.Invoke(() =>
-            {
-                if (!packet.Ethernet.Ip.IsValid || !packet.Ethernet.Arp.IsValid)
-                {
-                }
-                else
-                {
-                    list_new_packet.Add(packet);
-                }
-            });
+                    Console.WriteLine("======================");
+                    List_2 = list_new_packet;
+                    list_new_packet = new List<Packet>();
 
-        }
-        private void add_information(Database.Session _session, Database.Detail _detail, Packet _packet)
-        {
-            if (_packet.Ethernet.IpV4.Source != null)
-                _session.IP_in = _packet.IpV4.Source.ToString();
-            else
-                _session.IP_in = "0.0.0.0";
-            if (_packet.Ethernet.IpV4.Destination != null)
-                _session.IP_out = _packet.IpV4.Destination.ToString();
-            else
-                _session.IP_out = "0.0.0.0";
-            _session.MAC_in = _packet.Ethernet.Source.ToString();
-            _session.Started = _packet.Timestamp;
-            _session.Ended = _packet.Timestamp;
-            _detail.UpdateTime = _packet.Timestamp;
-            //Phaan biet theo port
-            try
-            {
-                _detail.KeyData = Dns.GetHostEntry(_session.IP_out).HostName;
-            }
-            catch (Exception)
-            {
-                _detail.KeyData = "";
-            }
-            if (_packet.IpV4.Tcp != null)
-            {
-                _session.Port_in = _packet.IpV4.Tcp.SourcePort;
-                _session.Port_out = _packet.IpV4.Tcp.DestinationPort;
-                if (_packet.Ethernet.IpV4.Tcp.Payload != null)
-                {
-                    _detail.TextData = _packet.Ethernet.IpV4.Tcp.Payload.Decode(Encoding.UTF8);
-                    _detail.BinData = _packet.Ethernet.IpV4.Tcp.Payload.ToHexadecimalString().ToUpper();
-                }
-                else
-                {
-                    _detail.TextData = "";
-                    _detail.BinData = "";
+                    BackgroundWorker handle_packet = new BackgroundWorker();
+                    handle_packet.WorkerReportsProgress = true;
+                    handle_packet.DoWork += Add_Database;
+                    handle_packet.RunWorkerAsync();
+
                 }
             }
-            else
-            {
-                _session.Port_in = 0;
-                _session.Port_out = 0;
-                _detail.TextData = "";
-                _detail.BinData = "";
-            }
+  
+
         }
 
         private void Start_Btn(object sender, RoutedEventArgs e)
         {
-            lv_packet.Items.Clear();
-            lv_packet.Items.Refresh();
-            cbDevice.IsEnabled = false;
-            Start_Button.IsEnabled = false;
-            Stop_Button.IsEnabled = true;
+            cb_device.IsEnabled = false;
+            btn_start.IsEnabled = false;
+            btn_stop.IsEnabled = true;
 
 
             BackgroundWorker worker = new BackgroundWorker();
@@ -200,9 +156,9 @@ namespace WpfApplication1
 
         private void Stop_Btn(object sender, RoutedEventArgs e)
         {
-            cbDevice.IsEnabled = true;
-            Start_Button.IsEnabled = true;
-            Stop_Button.IsEnabled = false;
+            cb_device.IsEnabled = true;
+            btn_start.IsEnabled = true;
+            btn_stop.IsEnabled = false;
 
             communicator.Break();
         }
@@ -220,63 +176,22 @@ namespace WpfApplication1
             if (e.AddedItems.Count == 0)
                 return;
             Packet packet = e.AddedItems[0] as Packet;
-            //Stack_Info.Children.Clear();
-
-            //TextBlock tbFrame = new TextBlock();
-            //tbFrame.Text = "Frame:" + packet.Count + " byte(s)";
-
-            //StackPanel_Add(Stack_Info, new List<UIElement> { tbFrame });
-            // Expander Ethernet
-            //Expander exEthernet = new Expander();
-            //exEthernet.Header = "Ethernet";
-
-            //StackPanel stack_Ethernet = new StackPanel();
-            //TextBlock tbMacSrc = new TextBlock(), 
-            //          tbMacDes = new TextBlock(),
-            //          tbType = new TextBlock();
-            //tbMacSrc.Text = "Mac Address Source: " + (packet.Ethernet.Source.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Source.ToString());
-            //tbMacDes.Text = "Mac Address Destination: " + (packet.Ethernet.Destination.ToString() == "ff:ff:ff:ff" ? "Broadcast" : packet.Ethernet.Destination.ToString());
-            //tbType.Text = "Type: " + packet.Ethernet.EtherType.ToString();
-            //StackPanel_Add(stack_Ethernet, new List<UIElement> { tbMacSrc, tbMacDes, tbType });
-            //exEthernet.Content = stack_Ethernet;
 
             try
             {
-
-                // Expander Http Header
-                tab_httpheader.Content = null;
+                sv_discription.Content = null;
                 if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
-                {
-                    //Expander exHTTPHeader = new Expander();
-                    //exHTTPHeader.Header = "HTTP Header";
-
+                {     
                     TextBlock tbHTTPHeader = new TextBlock();
-
                     tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
-
-                    //exHTTPHeader.Content = tbHTTPHeader;
-
-                    //StackPanel_Add(Stack_Info, new List<UIElement> { tbHTTPHeader });
-                    tab_httpheader.Content = tbHTTPHeader;
+                    sv_discription.Content = tbHTTPHeader;
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("------" + ex);
-                throw ex;
-            }
+            catch (Exception)
+            { }
         }
 
-        private void cbweb_changed(object sender, RoutedEventArgs e)
-        {
-            // CollectionViewSource.GetDefaultView(lv_packet.ItemsSource).Refresh();
-        }
-
-        private void cbftp_changed(object sender, RoutedEventArgs e)
-        {
-
-        }
-
+        // Chart
         public void BasicLine()
         {
             InitializeComponent();
@@ -334,6 +249,36 @@ namespace WpfApplication1
         public SeriesCollection SeriesCollection { get; set; }
         public string[] Labels { get; set; }
         public Func<double, string> YFormatter { get; set; }
+
+        private void btn_filter_apply_Click(object sender, RoutedEventArgs e)
+        {
+            string ip_src = cb_ipadd_input.SelectedItem.ToString() ?? string.Empty;
+            DateTime date_from = dp_from.SelectedDate.Value;
+            DateTime date_to = dp_to.SelectedDate.Value;
+            List<long> protocol = new List<long>();
+            if (cb_web.IsChecked == true)
+                protocol.InsertRange(protocol.Count, new long[] { 443, 80 });
+            if (cb_ftp.IsChecked == true)
+                protocol.InsertRange(protocol.Count, new long[] { 20, 21 });
+            if (cb_dns.IsChecked == true)
+                protocol.InsertRange(protocol.Count, new long[] { 53, 137, 5355 });
+            if (cb_mail.IsChecked == true)
+                protocol.InsertRange(protocol.Count, new long[] { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 });
+
+            db.getdata(lv_packet, ip_src, date_from, date_to, protocol); 
+            
+            
+        }
+
+        //private IEnumerable<IGrouping<string, Detail>> databy()
+        //{
+        //    using (var _data = new Context())
+        //    {
+        //        var datadetail = HandleDatabase.getdata();
+        //        var groupofPartyA = datadetail.GroupBy(s => s.Session.IP_in);
+        //        return groupofPartyA;
+        //    }
+        //}
     }
 
     

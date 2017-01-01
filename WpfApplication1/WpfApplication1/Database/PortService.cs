@@ -23,7 +23,13 @@ namespace WpfApplication1.Database
             }
             return "Others";
         }
-        private static List<ServiceInfo> ReadServicesFile()
+
+        internal static object GetServiceName(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static List<ServiceInfo> ReadServicesFile()
         {
             var sysFolder = Environment.GetFolderPath(Environment.SpecialFolder.System);
             if (!sysFolder.EndsWith("\\"))

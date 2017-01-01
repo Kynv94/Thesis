@@ -6,6 +6,8 @@
         xmlns:local="clr-namespace:WpfApplication1"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:util="clr-namespace:Wpf.Util"
+
         mc:Ignorable="d"
         Title="MainWindow"
         WindowState="Maximized">
@@ -13,6 +15,7 @@
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
+        <local:Convert_Protocol x:Key="GetServiceNameMethod"/>
     </Window.Resources>
 
     <Grid>
@@ -20,20 +23,19 @@
             <RowDefinition/>
 
         </Grid.RowDefinitions>
-        <TabControl x:Name="tabControl" Margin="5" BorderBrush="White">
+        <TabControl x:Name="tabControl" Margin="5" BorderBrush="White" Background="#FF88B04B">
             <TabItem x:Name="Tab_Event" Header="EVENT" Margin="0" Width="75" Height="20">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="100"/>
-                        <RowDefinition Height="223*"/>
-                        <RowDefinition Height="118*"/>
-                        <RowDefinition Height="25*"/>
+                        <RowDefinition Height="259*"/>
+                        <RowDefinition Height="83*"/>
+                        <RowDefinition Height="20"/>
                     </Grid.RowDefinitions>
-                    <ListView 
-                        Margin = "0,5,0,0" x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
+                    <ListView x:Name = "lv_packet" IsSynchronizedWithCurrentItem="True" 
                         HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
                         ScrollViewer.CanContentScroll="True" SelectionMode="Single"
-                        SelectionChanged="lv_packet_SelectionChanged" Grid.Row="1">
+                        SelectionChanged="lv_packet_SelectionChanged" Grid.Row="1" util:GridViewSort.AutoSort="True">
                         <ListView.Resources>
                             <Style TargetType="{x:Type GridViewColumnHeader}">
                                 <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -41,69 +43,58 @@
                         </ListView.Resources>
                         <ListView.View>
 
-                            <GridView>
+                            <GridView >
 
                                 <GridViewColumn Header = "ID" 
-                                    DisplayMemberBinding = "{Binding Id}" Width= "50"/>
+                                    DisplayMemberBinding = "{Binding Det_ID}" Width= "50"
+                                                util:GridViewSort.PropertyName="Det_ID"/>
 
                                 <GridViewColumn Header = "Date" 
-                                    DisplayMemberBinding = "{Binding Date}" Width= "150"/>
+                                    DisplayMemberBinding = "{Binding Session.Started}" Width= "180"
+                                                util:GridViewSort.PropertyName="Session.Started"/>
 
                                 <GridViewColumn Header = "Last Update" 
-                                    DisplayMemberBinding = "{Binding UpdateTime}" Width= "150"/>
+                                    DisplayMemberBinding = "{Binding Session.Ended}" Width= "180"
+                                                util:GridViewSort.PropertyName="Session.Ended"/>
 
                                 <GridViewColumn Header = "Protocol" 
-                                    DisplayMemberBinding = "{Binding Protocol}" Width= "130"/>
+                                    DisplayMemberBinding = "{Binding PluginID, Converter={StaticResource GetServiceNameMethod}}" Width= "130"
+                                                util:GridViewSort.PropertyName="Protocol"/>
 
                                 <GridViewColumn Header = "Party A" 
-                                    DisplayMemberBinding = "{Binding PartyA}" Width="150"/>
+                                    DisplayMemberBinding = "{Binding Session.IP_in}" Width="150"
+                                                util:GridViewSort.PropertyName="Session.IP_in"/>
 
                                 <GridViewColumn Header = "Port A" 
-                                    DisplayMemberBinding = "{Binding PortA}" Width= "70"/>
+                                    DisplayMemberBinding = "{Binding Session.Port_in}" Width= "70"
+                                                util:GridViewSort.PropertyName="Session.Port_in"/>
 
                                 <GridViewColumn Header = "Party B" 
-                                    DisplayMemberBinding = "{Binding PartyB}" Width="150"/>
+                                    DisplayMemberBinding = "{Binding Session.IP_out}" Width="150"
+                                                util:GridViewSort.PropertyName="Session.IP_out"/>
 
                                 <GridViewColumn Header = "Port B" 
-                                    DisplayMemberBinding = "{Binding PortB}" Width= "70"/>
+                                    DisplayMemberBinding = "{Binding Session.Port_out}" Width= "70"
+                                                util:GridViewSort.PropertyName="Session.Port_out"/>
 
                                 <GridViewColumn Header = "Info" 
-                                    DisplayMemberBinding = "{Binding Info}" Width= "300"/>
+                                    DisplayMemberBinding = "{Binding KeyData}" Width= "300"/>
 
                             </GridView>
 
                         </ListView.View>
                         <Canvas Height="100" Width="100"/>
+
                     </ListView>
                     <GridSplitter x:Name="gridSplitter6" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" Grid.Row="2" Height="5" VerticalAlignment="Top"/>
-                    <TabControl x:Name="tab_Info" Margin="0,5,0,2" Grid.Row="2">
+                    <TabControl x:Name="tab_Info" Margin="0,5,0,0" Grid.Row="2">
                         <TabItem x:Name="tab_discription" Header="Discription" Margin="-2,-1,1,-1">
                             <ScrollViewer x:Name="sv_discription" />
                         </TabItem>
                     </TabControl>
                     <TabControl x:Name="tabControl_Copy" Margin="0">
-                        <TabItem x:Name="tab_view" Header="Control" Height="22" VerticalAlignment="Bottom" Margin="-2,-2,-2,2">
-                            <Grid Background="#FFE5E5E5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="405"/>
-                                    <ColumnDefinition Width="333"/>
-                                </Grid.ColumnDefinitions>
-                                <Button x:Name="btn_import" Content="Import" Margin="30,5,0,0" Grid.Column="1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                                <ComboBox x:Name="cb_device" Text="--Select device--" SelectionChanged="cb_device_SelectionChanged" Margin="60,24,0,0" VerticalAlignment="Top" Height="26" HorizontalAlignment="Left" Width="174"/>
-                                <Button x:Name="btn_stop" Content="Stop" IsEnabled="False" Margin="330,11,0,0" Height="50" Click="Stop_Btn" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" RenderTransformOrigin="1.033,0.775" HorizontalAlignment="Left" VerticalAlignment="Top">
-                                    <Button.Background>
-                                        <ImageBrush/>
-                                    </Button.Background>
-                                </Button>
-                                <Button x:Name="btn_start" Content="Start" IsEnabled="False" Margin="256,11,0,0" Height="50" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                                    <Button.Background>
-                                        <ImageBrush/>
-                                    </Button.Background>
-                                </Button>
-                                <Label x:Name="label_device" Content="Device" Margin="10,24,0,0" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Width="45"/>
-                            </Grid>
-                        </TabItem>
-                        <TabItem Header="Filter" Margin="3,-2,-7,0">
+
+                        <TabItem Header="View" Margin="3,-2,-7,0">
                             <Grid x:Name="grid_filter" Background="#FFE5E5E5" Margin="0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="101"/>
@@ -157,8 +148,33 @@
 
                             </Grid>
                         </TabItem>
+
+                        <TabItem x:Name="tab_view" Header="Control" Margin="8,-2,-12,0">
+                            <Grid Background="#FFE5E5E5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="405" />
+                                    <ColumnDefinition Width="333"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="btn_import" Content="Import" Margin="30,5,0,0" Grid.Column="1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                <ComboBox x:Name="cb_device" Text="--Select device--" SelectionChanged="cb_device_SelectionChanged" Margin="60,24,0,0" VerticalAlignment="Top" Height="26" HorizontalAlignment="Left" Width="174"/>
+                                <Button x:Name="btn_stop" Content="Stop" IsEnabled="False" Margin="330,11,0,0" Height="50" Click="Stop_Btn" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" RenderTransformOrigin="1.033,0.775" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                    <Button.Background>
+                                        <ImageBrush/>
+                                    </Button.Background>
+                                </Button>
+                                <Button x:Name="btn_start" Content="Start" IsEnabled="False" Margin="256,11,0,0" Height="50" Click="Start_Btn" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                    <Button.Background>
+                                        <ImageBrush/>
+                                    </Button.Background>
+                                </Button>
+                                <Label x:Name="label_device" Content="Device" Margin="10,24,0,0" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Width="45"/>
+                                
+                            </Grid>
+                        </TabItem>
                     </TabControl>
-                    <Grid HorizontalAlignment="Left" Height="22" Margin="0,3,0,0" Grid.Row="3" VerticalAlignment="Top" Width="744" Background="#FF88B04B"/>
+                    <StatusBar Name="sb_total" Grid.Row="3" Background="#FF88B04B">
+                        <TextBlock x:Name="tb_total" TextWrapping="Wrap" Height="25" Width="183" Margin="27,0,0,0" UseLayoutRounding="False" TextDecorations="{x:Null}" FontWeight="Bold"/>
+                    </StatusBar>
                 </Grid>
             </TabItem>
 
@@ -166,26 +182,107 @@
             <TabItem x:Name="Tab_Chart" Margin="0" Header="CHART" Width="75" Height="20">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="100*"/>
-                        <RowDefinition Height="365*"/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
 
 
-                    <Grid Margin="0,19,0,0" Grid.Row="1">
+                    <Grid Margin="0,119,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition/>
                         </Grid.RowDefinitions>
                     </Grid>
-                    <lvc:CartesianChart Series="{Binding SeriesCollection}" LegendLocation="Right" Margin="0" Grid.Row="1" >
+                    <lvc:CartesianChart x:Name="line_chart" Series="{Binding SeriesCollection}" LegendLocation="Right" Margin="0" >
 
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis Title="Sales" LabelFormatter="{Binding YFormatter}"></lvc:Axis>
+                            <lvc:Axis FontSize="15" Title="Packets" LabelFormatter="{Binding YFormatter}"></lvc:Axis>
                         </lvc:CartesianChart.AxisY>
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis Title="Month" Labels="{Binding Labels}"></lvc:Axis>
+                            <lvc:Axis FontSize="15" Title="Date" Labels="{Binding Labels}"></lvc:Axis>
                         </lvc:CartesianChart.AxisX>
                     </lvc:CartesianChart>
 
+                </Grid>
+            </TabItem>
+            <TabItem Header="Alert" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="54">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="80"/>
+                        <RowDefinition Height="67*"/>
+                        <RowDefinition Height="55*"/>
+                        <RowDefinition Height="20"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Background="LightGray">
+                        <Button x:Name="btn_add_alert" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                            <StackPanel>
+                                <Image Source="Image/add_bell.png" Width="50" Height="50" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="btn_modify_alert" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}">
+                            <StackPanel>
+                                <Image Source="Image/mod_bell.png" Width="50" Height="50" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="btn_delete_alert" HorizontalAlignment="Left" Margin="160,0,0,0" Width="80" Background="{x:Null}" BorderBrush="{x:Null}">
+                            <StackPanel>
+                                <Image Source="Image/del_bell.png" Width="50" Height="50" />
+                            </StackPanel>
+                        </Button>
+
+                    </Grid>
+
+                    <ListView x:Name="lv_alert" Grid.Row="1"
+                              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                        <ListView.Resources>
+                            <Style TargetType="{x:Type GridViewColumnHeader}">
+                                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            </Style>
+                        </ListView.Resources>
+                        <ListView.View>
+                            <GridView>
+
+                                <GridViewColumn Header = "Enabled" 
+                                    DisplayMemberBinding = "{Binding}" Width= "100" />
+
+                                <GridViewColumn Header = "Count" 
+                                    DisplayMemberBinding = "{Binding}" Width= "100" />
+
+                                <GridViewColumn Header = "Name" 
+                                    DisplayMemberBinding = "{Binding}" Width= "150" />
+
+                                <GridViewColumn Header = "Protocols" 
+                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+
+                                <GridViewColumn Header = "Action" 
+                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <ListView x:Name="lv_listalert" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Grid.Row="2">
+                        <ListView.Resources>
+                            <Style TargetType="{x:Type GridViewColumnHeader}">
+                                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            </Style>
+                        </ListView.Resources>
+                        <ListView.View>
+                            <GridView>
+
+                                <GridViewColumn Header = "Date" 
+                                    DisplayMemberBinding = "{Binding}" Width= "150" />
+
+                                <GridViewColumn Header = "Alert Name" 
+                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+
+                                <GridViewColumn Header = "Event ID(s)" 
+                                    DisplayMemberBinding = "{Binding}" Width= "300" />
+
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <StatusBar Margin="0" Grid.Row="3" Background="#FF88B04B"/>
                 </Grid>
             </TabItem>
 

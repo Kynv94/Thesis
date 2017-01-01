@@ -8,7 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("model1.context.tt")]
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("model1.tt")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("image/add_bell.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("image/del_bell.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("image/mod_bell.png")]
 
 

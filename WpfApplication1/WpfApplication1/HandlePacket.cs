@@ -456,7 +456,7 @@ namespace WpfApplication1
                     {
                         PortService ps = new PortService();
                         //KeyData
-                        new_detail.KeyData = ps.GetServiceName(new_detail.PluginID) ?? string.Empty;
+                        new_detail.KeyData =  ps.GetServiceName(new_detail.PluginID) ?? string.Empty;
                         //TextData
                         new_detail.TextData = tcp.Payload.Decode(Encoding.UTF8) ?? string.Empty;
                         break;

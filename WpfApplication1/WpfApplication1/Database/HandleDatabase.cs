@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Data.Entity;
 
 namespace WpfApplication1.Database
 {
@@ -82,43 +83,27 @@ namespace WpfApplication1.Database
                                    || (s.IP_in == newsession.IP_out && s.IP_out == newsession.IP_in && s.Port_in == newsession.Port_out && s.Port_out == newsession.Port_in))
                                    orderby s.SessionID descending
                                    select s).FirstOrDefault();
+                try
+                {
+                    _data.Entry(old_session).Collection(s => s.Details).Load();
+                }
+                catch (Exception) { }
                 return old_session;
             }
         }
 
         /////get data
-        internal void getdata(ListView lv_packet, string ip_src, DateTime date_from, DateTime date_to, List<long> protocol)
+        internal List<Detail> getdata(string ip_src, DateTime date_from, DateTime date_to, List<long> protocol)
         {
             using (var _data = new Context())
             {
-                PortService ps = new PortService();
-                var sessions = _data.Sessions.ToList();
-                var details = _data.Details.ToList();
-                var result = from d in details
-                             join s in sessions
-                             on d.SessionID equals s.SessionID
-                             select new
-                             {
-                                 Id = d.Det_ID,
-                                 Date = s.Started,
-                                 UpdateTime = d.UpdateTime,
-                                 PluginID = d.PluginID,
-                                 Protocol = ps.GetServiceName(d.PluginID),                
-                                 PartyA = s.IP_in,
-                                 PartyB = s.IP_out,
-                                 PortA = s.Port_in,
-                                 PortB = s.Port_out,
-                                 Info = d.KeyData,
-                                 Discription = d.TextData
-                             };
-                
-                var result2 = result.Where(s => s.PartyA == ip_src && s.UpdateTime >= date_from && s.UpdateTime <= date_to && protocol.Contains(s.PluginID)).ToList();
-                lv_packet.ClearValue(ItemsControl.ItemsSourceProperty);
-                lv_packet.Items.Clear();
-                lv_packet.Items.Refresh();
-                lv_packet.ItemsSource = result2;
+                var result = _data.Details.Include(s => s.Session).Where(s => s.Session.IP_in == ip_src
+                                                    && s.UpdateTime >= date_from && s.UpdateTime <= date_to
+                                                    && protocol.Contains(s.PluginID)).ToList();
+                return result;
             }
         }
+
         //Group by date
         private IEnumerable<IGrouping<string, Detail>> databydate(List<Detail> list)
         {

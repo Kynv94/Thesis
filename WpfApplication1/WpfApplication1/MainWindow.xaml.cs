@@ -10,9 +10,11 @@ using System.Net;
 using System.Windows.Data;
 using LiveCharts;
 using LiveCharts.Wpf;
+using LiveCharts.Defaults;
 using System.Windows.Media;
 using WpfApplication1.Database;
 using System.Linq;
+
 
 namespace WpfApplication1
 {
@@ -110,8 +112,8 @@ namespace WpfApplication1
         {
             foreach (var item in List_2)            
                 HandlePacket.add_informationv2(item);
-            //keys = db.databyPartyA().Select(s => s.Key).ToList();
-            //cb_ipadd_input.ItemsSource = keys;
+            keys = db.databyPartyA().Select(s => s.Key).ToList();
+            cb_ipadd_input.ItemsSource = keys;
         }
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
@@ -140,18 +142,27 @@ namespace WpfApplication1
   
 
         }
+        LoginForm lf = new LoginForm();
 
         private void Start_Btn(object sender, RoutedEventArgs e)
         {
-            cb_device.IsEnabled = false;
-            btn_start.IsEnabled = false;
-            btn_stop.IsEnabled = true;
+            lf.Show();
+            lf.Activate();
+            lf.Topmost = true;
+            lf.Topmost = false;
+            lf.Focus();
+            if (lf.IsActive != true)
+            {
+                cb_device.IsEnabled = false;
+                btn_start.IsEnabled = false;
+                btn_stop.IsEnabled = true;
 
 
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += worker_DoWork;
-            worker.RunWorkerAsync(1000);
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.WorkerReportsProgress = true;
+                worker.DoWork += worker_DoWork;
+                worker.RunWorkerAsync(1000);
+            }
         }
 
         private void Stop_Btn(object sender, RoutedEventArgs e)
@@ -173,86 +184,84 @@ namespace WpfApplication1
 
         private void lv_packet_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
             if (e.AddedItems.Count == 0)
                 return;
-            Packet packet = e.AddedItems[0] as Packet;
-
+            Detail packet = e.AddedItems[0] as Detail ;
             try
             {
-                sv_discription.Content = null;
-                if (packet.Ethernet.IpV4.Tcp.Http.Header != null)
-                {     
-                    TextBlock tbHTTPHeader = new TextBlock();
-                    tbHTTPHeader.Text = packet.Ethernet.IpV4.Tcp.Http.Header.ToString();
-                    sv_discription.Content = tbHTTPHeader;
+                if (packet.TextData != null)
+                {
+                    sv_discription.Content = packet.TextData;
                 }
             }
-            catch (Exception)
-            { }
+            catch (Exception) { }
         }
 
+        private ChartValues<int> Number_Packet(DateTime date_from, DateTime date_to)
+        {
+            ChartValues<int> np = new ChartValues<int>();
+            for (DateTime time = date_from; time <= date_to; time = time.AddDays(1))
+            {
+                np.Add(list_packet_filter.Count(i => i.UpdateTime >= time && i.UpdateTime <= time.AddDays(1)));
+            }
+            return np;
+        }
         // Chart
-        public void BasicLine()
+        public void BasicLine(string ip_src, DateTime date_from, DateTime date_to)
         {
             InitializeComponent();
+            
 
             SeriesCollection = new SeriesCollection
             {
                 new LineSeries
                 {
-                    Title = "Series 1",
-                    Values = new ChartValues<double> { 4, 6, 5, 2 ,4 },
-                    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
-                    LineSmoothness = 0,
-
+                    Title = ip_src,
+                    Values = Number_Packet(date_from, date_to),
+                    // Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
+                    // LineSmoothness = 0,
                 },
-                new LineSeries
-                {
-                    Title = "Series 2",
-                    Values = new ChartValues<double> { 6, 7, 3, 4 ,6 },
-                    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
-                    LineSmoothness = 0,
-                    // PointGeometry = null
-                },
-                new LineSeries
-                {
-                    Title = "Series 3",
-                    Values = new ChartValues<double> { 4,2,7,2,7 },
-                    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
-                    LineSmoothness = 0,
-                    // PointGeometry = DefaultGeometries.Square,
-                    // PointGeometrySize = 15
-                }
+                
             };
-
-            Labels = new[] { "Jan", "Feb", "Mar", "Apr", "May" };
-            YFormatter = value => value.ToString("C");
-
-            //modifying the series collection will animate and update the chart
-            SeriesCollection.Add(new LineSeries
+            Labels = new List<string>();
+            for (DateTime time = date_from; time <= date_to; time = time.AddDays(1))
             {
-                Title = "Series 4",
-                Values = new ChartValues<double> { 5, 3, 2, 4 },
-                Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
-                LineSmoothness = 0, //0: straight lines, 1: really smooth lines
-                // PointGeometry = Geometry.Parse("m 25 70.36218 20 -28 -20 22 -8 -6 z"),
-                // PointGeometrySize = 50,
-                // PointForeround = Brushes.Gray
-            });
+                Labels.Add(time.Date.ToString("d"));
+            }
+
+            YFormatter = value => value.ToString() ;
+            // modifying the series collection will animate and update the chart
+            //SeriesCollection.Add(new LineSeries
+            //{
+            //    Title = "Series 4",
+            //    Values = new ChartValues<double> { 5, 3, 2, 4 },
+            //    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
+            //    LineSmoothness = 0, //0: straight lines, 1: really smooth lines
+            //    // PointGeometry = Geometry.Parse("m 25 70.36218 20 -28 -20 22 -8 -6 z"),
+            //    // PointGeometrySize = 50,
+            //    // PointForeround = Brushes.Gray
+            //});
 
             //modifying any series values will also animate and update the chart
-            SeriesCollection[3].Values.Add(5d);
+            // SeriesCollection[3].Values.Add(5d);
 
             DataContext = this;
         }
 
         public SeriesCollection SeriesCollection { get; set; }
-        public string[] Labels { get; set; }
-        public Func<double, string> YFormatter { get; set; }
+        public List<string> Labels { get; set; }
+        public Func<int, string> YFormatter { get; set; }
+        private List<Detail> list_packet_filter;
 
         private void btn_filter_apply_Click(object sender, RoutedEventArgs e)
         {
-            string ip_src = cb_ipadd_input.SelectedItem.ToString() ?? string.Empty;
+            while (cb_ipadd_input.SelectedItem == null)
+            {
+                MessageBox.Show("Select IP Source", "Caution", MessageBoxButton.OK, MessageBoxImage.Stop);
+                return;
+            }
+            string ip_src = cb_ipadd_input.SelectedItem.ToString();
             DateTime date_from = dp_from.SelectedDate.Value;
             DateTime date_to = DateTime.Now;
             if (dp_to.SelectedDate.Value != DateTime.Today)
@@ -269,10 +278,20 @@ namespace WpfApplication1
             if (cb_mail.IsChecked == true)
                 protocol.InsertRange(protocol.Count, new long[] { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 });
 
-            db.getdata(lv_packet, ip_src, date_from, date_to, protocol); 
-            
-            
+            list_packet_filter = db.getdata(ip_src, date_from, date_to, protocol);
+            lv_packet.ClearValue(ItemsControl.ItemsSourceProperty);
+            lv_packet.Items.Clear();
+            lv_packet.Items.Refresh();
+            lv_packet.ItemsSource = list_packet_filter;
+            long total_packet = list_packet_filter.Count;
+            tb_total.Text = "TOTAL: " + total_packet;
+
+            BasicLine(ip_src, date_from, date_to);
+            // line_chart.Update();
+
         }
+
+
 
         //private IEnumerable<IGrouping<string, Detail>> databy()
         //{

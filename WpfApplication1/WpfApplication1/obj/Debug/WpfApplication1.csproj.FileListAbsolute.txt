@@ -87,3 +87,6 @@ D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\Wpf
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v4.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v5.resources
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\GeneratedInternalTypeHelper.g.cs
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.g.cs
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.baml

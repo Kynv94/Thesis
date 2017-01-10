@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Data.Entity;
+using System.ComponentModel;
 
 namespace WpfApplication1.Database
 {
@@ -15,7 +16,7 @@ namespace WpfApplication1.Database
             if (new_session != null) //Kiểm tra nếu gói tin mới hợp lệ
             {
                 Session oldsession = get_old_session(new_session);
-                if (oldsession != null && oldsession.State != 4 && new_detail != null && oldsession.SessionID !=0) // Kiểm tra nếu gói tin mới thuộc session cũ 
+                if (oldsession != null && oldsession.State != 4 && new_detail != null && oldsession.SessionID != 0) // Kiểm tra nếu gói tin mới thuộc session cũ 
                 {
                     oldsession.State = new_session.State; //cập nhật state
                     oldsession.Ended = new_session.Ended; // cập nhật thời gian cuối
@@ -58,7 +59,7 @@ namespace WpfApplication1.Database
             }
         }
         //Method thêm Detail vào database
-       // private static void add_new_detail(Session _session)
+        // private static void add_new_detail(Session _session)
         private static void add_new_detail(Session _session)
         {
             using (var _data = new Context())
@@ -93,7 +94,7 @@ namespace WpfApplication1.Database
         }
 
         /////get data
-        internal List<Detail> getdata(string ip_src, DateTime date_from, DateTime date_to, List<long> protocol)
+        internal List<Detail> getdata(string ip_src, DateTime date_from, DateTime date_to, List<int> protocol)
         {
             using (var _data = new Context())
             {
@@ -121,7 +122,44 @@ namespace WpfApplication1.Database
             }
         }
 
+        public void Do_time_out(object sender, DoWorkEventArgs e)
+        {
+            using (var _data = new Context())
+            {
+                int noOfRowUpdated = _data.Database.ExecuteSqlCommand("Update [dbo].[Sessions] Set [State] = 4  Where (ABS(DATEDIFF(MINUTE, [Ended], GETDATE())) > 8)");
+                // return noOfRowUpdated;
+            }
+        }
+
+       
+
         
+
+        ////Delete Detail
+        //internal int delete_detail(long? detID)
+        //{
+        //    using (var _data = new Context())
+        //    {
+        //        var DetIDParameter = detID.HasValue ?
+        //            new SqlParameter("@DetID", detID) :
+        //            new SqlParameter("@DetID", typeof(long));
+        //        int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Details] WHERE Det_ID = @DetID", DetIDParameter);
+        //        return noOfRowDeleted;
+        //    }
+        //}
+
+        ////Delte old detail
+        //internal int delete_old_data(int? max_age)
+        //{
+        //    using (var _data = new Context())
+        //    {
+        //        var MaxAgeParameter = max_age.HasValue ?
+        //            new SqlParameter("@Max_age", max_age) :
+        //            new SqlParameter("@Max_age", typeof(int));
+        //        int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Details] WHERE (ABS(DATEDIFF(DAY, [UpdateTime], GETDATE() )) > @MaxAge)", MaxAgeParameter);
+        //        return noOfRowDeleted;
+        //    }
+        //}
 
 
         //Group by Party B
@@ -185,10 +223,6 @@ namespace WpfApplication1.Database
         //    }
         //}
 
-        //v2
-
-
-        //v1
 
 
     }

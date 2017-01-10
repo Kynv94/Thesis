@@ -90,3 +90,44 @@ E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrati
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\GeneratedInternalTypeHelper.g.cs
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.g.cs
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.baml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.exe.config
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.exe
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.exe
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\WpfApplication1.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.dll
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\EntityFramework.SqlServer.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Base.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Core.Extensions.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.pdb
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\bin\Debug\PcapDotNet.Packets.xml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.g.cs
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\MainWindow.g.cs
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\App.g.cs
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\GeneratedInternalTypeHelper.g.cs
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.cache
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.lref
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.baml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\MainWindow.baml
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.g.resources
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v4.resources
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v5.resources
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Properties.Resources.resources
+E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csproj.GenerateResource.Cache

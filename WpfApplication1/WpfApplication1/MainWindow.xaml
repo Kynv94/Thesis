@@ -9,8 +9,9 @@
         xmlns:util="clr-namespace:Wpf.Util"
 
         mc:Ignorable="d"
-        Title="MainWindow"
-        WindowState="Maximized">
+        Title="NET TOUGH"
+        WindowState="Maximized"
+        >
     <Window.Resources>
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -23,7 +24,7 @@
             <RowDefinition/>
 
         </Grid.RowDefinitions>
-        <TabControl x:Name="tabControl" Margin="5" BorderBrush="White" Background="#FF88B04B">
+        <TabControl x:Name="tabControl_level1" Margin="5" BorderBrush="White" Background="#FF88B04B">
             <TabItem x:Name="Tab_Event" Header="EVENT" Margin="0" Width="75" Height="20">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
@@ -92,7 +93,7 @@
                             <ScrollViewer x:Name="sv_discription" />
                         </TabItem>
                     </TabControl>
-                    <TabControl x:Name="tabControl_Copy" Margin="0">
+                    <TabControl x:Name="tabControl_Event" Margin="0">
 
                         <TabItem Header="View" Margin="3,-2,-7,0">
                             <Grid x:Name="grid_filter" Background="#FFE5E5E5" Margin="0">
@@ -106,10 +107,11 @@
                                 <ToggleButton x:Name ="btn_filter_ipsrc" Content="IP Source" Margin="0" BorderBrush="{x:Null}" Foreground="Black" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Background="#FFE5E5E5"/>
                                 <Popup x:Name="popup_filter_ipsrc" IsOpen="{Binding IsChecked, ElementName=btn_filter_ipsrc}" 
                                     PlacementTarget="{Binding ElementName=btn_filter_ipsrc}" StaysOpen="False">
-                                    <Grid Background="White" Height="80" VerticalAlignment="Top" Width="200">
+                                    <Grid Background="White" Height="115" VerticalAlignment="Top" Width="200">
                                         <Border Background="White" BorderThickness="1" BorderBrush="Black" />
                                         <Label x:Name="lb_ipadd" Content="IP Address:" Margin="10,10,106,45"/>
                                         <ComboBox x:Name="cb_ipadd_input" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="180"/>
+                                        <Button x:Name="update_ip_list" Content="Update" HorizontalAlignment="Left" Margin="61,88,0,0" VerticalAlignment="Top" Width="75" Click="update_ip_list_Click"/>
                                         <!--<TextBox x:Name="tb_ipadd_input" HorizontalAlignment="Left" Height="23" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180"/>-->
 
 
@@ -149,7 +151,7 @@
                             </Grid>
                         </TabItem>
 
-                        <TabItem x:Name="tab_view" Header="Control" Margin="8,-2,-12,0">
+                        <TabItem x:Name="tab_control" Header="Control" Margin="8,-2,-12,0">
                             <Grid Background="#FFE5E5E5">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="405" />
@@ -203,7 +205,7 @@
 
                 </Grid>
             </TabItem>
-            <TabItem Header="Alert" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="54">
+            <TabItem Header="ALERT" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="54" Margin="-1,0,0,0">
                 <Grid Background="White">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="80"/>
@@ -212,7 +214,7 @@
                         <RowDefinition Height="20"/>
                     </Grid.RowDefinitions>
 
-                    <Grid Background="LightGray">
+                    <Grid x:Name ="grid_alert_control" Background="LightGray">
                         <Button x:Name="btn_add_alert" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
                             <StackPanel>
                                 <Image Source="Image/add_bell.png" Width="50" Height="50" />

@@ -9,7 +9,7 @@
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Label x:Name="label" Content="PASSWORD:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="74" Margin="10,10,0,0"/>
-        <PasswordBox x:Name="passwordBox" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="272" Height="34"/>
+        <PasswordBox x:Name="passwordBox" HorizontalAlignment="Left" Margin="10,51,0,0" VerticalAlignment="Top" Width="272" Height="28" FontSize="16"/>
         <Button x:Name="btn_login_ok" Content="OK" HorizontalAlignment="Left" Margin="30,0,0,50" VerticalAlignment="Bottom" Width="75" Click="btn_login_ok_Click" IsDefault="True"/>
         <Button x:Name="btn_login_cancel" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,30,50" VerticalAlignment="Bottom" Width="75" Click="btn_login_cancel_Click"/>
         <StatusBar HorizontalAlignment="Left" Height="30" Margin="0,152,0,0" VerticalAlignment="Top" Width="294" Background="#FF88B04B">

@@ -14,7 +14,11 @@ using LiveCharts.Defaults;
 using System.Windows.Media;
 using WpfApplication1.Database;
 using System.Linq;
-
+using System.Timers;
+using System.Security.AccessControl;
+using System.Security;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace WpfApplication1
 {
@@ -28,10 +32,44 @@ namespace WpfApplication1
         List<Packet> list_new_packet = new List<Packet>();
         HandleDatabase db = new HandleDatabase();
         List<string> keys = new List<string>();
+        private BackgroundWorker update_state;
+        public static string password_hash = string.Empty;
+
         public MainWindow()
         {
             InitializeComponent();
 
+            string file_password = @".\password.txt";
+            if (File.Exists(file_password) == false)
+            {
+                // create a new password file
+                FileSecurity securityrules = new FileSecurity();
+                securityrules.AddAccessRule(new FileSystemAccessRule("Administrators", FileSystemRights.FullControl, AccessControlType.Allow));
+                securityrules.AddAccessRule(new FileSystemAccessRule("Everyone", FileSystemRights.Read, AccessControlType.Allow));
+                password_hash = "e19d5cd5af0378da05f63f891c7467af";
+                
+                using (FileStream fs = File.Create(file_password, 100, FileOptions.Encrypted, securityrules))
+                {
+                    Byte[] info = new UTF8Encoding(true).GetBytes(password_hash);
+                    // Add some information to the file.
+                    fs.Write(info, 0, info.Length);
+                }
+
+                // add default password in hash form
+            }
+            else
+            {
+                using (StreamReader sr = File.OpenText(file_password))
+                {
+                    string s = "";
+                    while ((s = sr.ReadLine()) != null)
+                    {
+                        password_hash += s;
+                    }
+                }
+            }
+
+            // create ip list
             keys = db.databyPartyA().Select(s => s.Key).ToList();
             cb_ipadd_input.ItemsSource = keys;
 
@@ -57,23 +95,64 @@ namespace WpfApplication1
                     name_device += device.Description;
                 cb_device.Items.Add(name_device);
             }
+            update_state = new BackgroundWorker();
+            update_state.DoWork += db.Do_time_out;
+            Timer timer = new Timer(8 * 60 * 1000);
+            timer.Elapsed += timer_Elapsed;
+            timer.Start();
+
+            
 
         }
 
+
+        void timer_Elapsed(object sender, ElapsedEventArgs e)
+
+        {
+            if (!update_state.IsBusy)
+                update_state.RunWorkerAsync();
+        }
+
+        private void update_ip_list_Click(object sender, RoutedEventArgs e)
+        {
+            BackgroundWorker update_iplist = new BackgroundWorker();
+            update_iplist.WorkerReportsProgress = true;
+            update_iplist.DoWork += update_iplist_bw;
+            update_iplist.RunWorkerAsync();
+            
+        }
+        
+        private void update_iplist_bw(object sender, DoWorkEventArgs e)
+        {
+            update_ip_list.Dispatcher.Invoke(()
+            =>
+            {
+                string message;
+                try
+                {
+                    keys = db.databyPartyA().Select(s => s.Key).ToList();
+                    cb_ipadd_input.ItemsSource = keys;
+
+                    message = "Updated";
+
+                }
+                catch (Exception)
+                {
+                    message = "Update Fail";
+                }
+                string caption = "Anoucement";
+                MessageBoxButton buttons = MessageBoxButton.OK;
+                MessageBoxResult result;
+                result = MessageBox.Show(message, caption, buttons);
+            });
+        }
 
         public PacketDevice selectedDevice;
         private void cb_device_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             btn_start.IsEnabled = true;
             String text = e.AddedItems[0] as String;
-            int deviceIndex;
-            for (deviceIndex = 0; deviceIndex != allDevices.Count; ++deviceIndex)
-            {
-                LivePacketDevice device = allDevices[deviceIndex];
-                if (text == (device.Name + " " + device.Description))
-                    break;
-            }
-            selectedDevice = allDevices[deviceIndex];
+            OfflinePacketDevice selectedDevice = new OfflinePacketDevice(FileName);
         }
 
         public PacketCommunicator communicator;
@@ -110,15 +189,15 @@ namespace WpfApplication1
 
         void Add_Database(object sender, DoWorkEventArgs e)
         {
-            foreach (var item in List_2)            
+            foreach (var item in List_2)
                 HandlePacket.add_informationv2(item);
-            keys = db.databyPartyA().Select(s => s.Key).ToList();
-            cb_ipadd_input.ItemsSource = keys;
+            //keys = db.databyPartyA().Select(s => s.Key).ToList();
+            //cb_ipadd_input.ItemsSource = keys;
         }
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
         {
-                     
+
             if (packet.Ethernet.Ip == null || packet.Ethernet.Arp == null)
             {
             }
@@ -127,8 +206,6 @@ namespace WpfApplication1
                 list_new_packet.Add(packet);
                 if (list_new_packet.Count >= 500)
                 {
-
-                    Console.WriteLine("======================");
                     List_2 = list_new_packet;
                     list_new_packet = new List<Packet>();
 
@@ -136,22 +213,23 @@ namespace WpfApplication1
                     handle_packet.WorkerReportsProgress = true;
                     handle_packet.DoWork += Add_Database;
                     handle_packet.RunWorkerAsync();
-
                 }
             }
-  
+
 
         }
-        LoginForm lf = new LoginForm();
-
+        LoginForm lf;
+        internal static bool check_password;
         private void Start_Btn(object sender, RoutedEventArgs e)
         {
-            lf.Show();
-            lf.Activate();
-            lf.Topmost = true;
-            lf.Topmost = false;
-            lf.Focus();
-            if (lf.IsActive != true)
+            if (lf == null || lf.IsActive == false)
+            {
+                lf = new LoginForm();
+            }
+            check_password = false;
+            lf.ShowDialog();
+
+            if (check_password == true)
             {
                 cb_device.IsEnabled = false;
                 btn_start.IsEnabled = false;
@@ -165,13 +243,16 @@ namespace WpfApplication1
             }
         }
 
+
         private void Stop_Btn(object sender, RoutedEventArgs e)
         {
+           
             cb_device.IsEnabled = true;
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
 
             communicator.Break();
+            
         }
 
         public void StackPanel_Add(StackPanel sp, List<System.Windows.UIElement> list)
@@ -187,7 +268,7 @@ namespace WpfApplication1
 
             if (e.AddedItems.Count == 0)
                 return;
-            Detail packet = e.AddedItems[0] as Detail ;
+            Detail packet = e.AddedItems[0] as Detail;
             try
             {
                 if (packet.TextData != null)
@@ -211,7 +292,7 @@ namespace WpfApplication1
         public void BasicLine(string ip_src, DateTime date_from, DateTime date_to)
         {
             InitializeComponent();
-            
+
 
             SeriesCollection = new SeriesCollection
             {
@@ -222,7 +303,7 @@ namespace WpfApplication1
                     // Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
                     // LineSmoothness = 0,
                 },
-                
+
             };
             Labels = new List<string>();
             for (DateTime time = date_from; time <= date_to; time = time.AddDays(1))
@@ -230,7 +311,7 @@ namespace WpfApplication1
                 Labels.Add(time.Date.ToString("d"));
             }
 
-            YFormatter = value => value.ToString() ;
+            YFormatter = value => value.ToString();
             // modifying the series collection will animate and update the chart
             //SeriesCollection.Add(new LineSeries
             //{
@@ -268,15 +349,15 @@ namespace WpfApplication1
             {
                 date_to = dp_to.SelectedDate.Value;
             }
-            List<long> protocol = new List<long>();
+            List<int> protocol = new List<int>();
             if (cb_web.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new long[] { 443, 80 });
+                protocol.InsertRange(protocol.Count, new int[] { 443, 80 });
             if (cb_ftp.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new long[] { 20, 21 });
+                protocol.InsertRange(protocol.Count, new int[] { 20, 21 });
             if (cb_dns.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new long[] { 53, 137, 5355 });
+                protocol.InsertRange(protocol.Count, new int[] { 53, 137, 5355 });
             if (cb_mail.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new long[] { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 });
+                protocol.InsertRange(protocol.Count, new int[] { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 });
 
             list_packet_filter = db.getdata(ip_src, date_from, date_to, protocol);
             lv_packet.ClearValue(ItemsControl.ItemsSourceProperty);
@@ -291,20 +372,8 @@ namespace WpfApplication1
 
         }
 
-
-
-        //private IEnumerable<IGrouping<string, Detail>> databy()
-        //{
-        //    using (var _data = new Context())
-        //    {
-        //        var datadetail = HandleDatabase.getdata();
-        //        var groupofPartyA = datadetail.GroupBy(s => s.Session.IP_in);
-        //        return groupofPartyA;
-        //    }
-        //}
+        
     }
-
-    
 
 
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.ComponentModel;
 
 namespace WpfApplication1.Database
@@ -59,19 +60,35 @@ namespace WpfApplication1.Database
             }
         }
         //Method thêm Detail vào database
-        // private static void add_new_detail(Session _session)
+       // private static void add_new_detail(Session _session)
         private static void add_new_detail(Session _session)
         {
             using (var _data = new Context())
             {
                 try
                 {
-                    _data.Entry(_session).State = System.Data.Entity.EntityState.Modified;
+                    _data.Entry(_session).State = EntityState.Modified;
                     _data.SaveChanges();
                 }
                 catch (Exception)
                 { }
             }
+        }
+
+        //Update Detail - Data
+        internal void UpdateDetail(Detail new_detail)
+        {
+            if (new_detail.Session.Ended < new_detail.UpdateTime)
+                new_detail.Session.Ended = new_detail.UpdateTime;
+            try
+            {
+                using (var _data = new Context())
+                {
+                    _data.Entry(new_detail).State = EntityState.Modified;
+                    _data.SaveChanges();
+                }
+            }
+            catch (Exception) { }
         }
 
         //Lấy session đã lưu
@@ -104,7 +121,77 @@ namespace WpfApplication1.Database
                 return result;
             }
         }
+        
+        //Update Detail - timeout
+        internal int Do_time_out()
+        {
+            using (var _data = new Context())
+            {
+                int noOfRowUpdated = _data.Database.ExecuteSqlCommand("Update [dbo].[Sessions] Set [State] = 4  Where (ABS(DATEDIFF(MINUTE, [Ended], GETDATE())) > 8)");
+                return noOfRowUpdated;
+            }
+        }
 
+        //Deletel Details
+
+        internal int delete_details(DateTime? Date_from, DateTime? Date_to, List<int?> Protocols, List<string> Sources)
+        {
+            int NoofDeleted = 0;
+            using (var _data = new Context())
+            {
+                var ListSessionIDs = _data.Details.Where(s => Sources.Contains(s.Session.IP_in)
+                                                    && s.UpdateTime >= Date_from && s.UpdateTime <= Date_to
+                                                    && Protocols.Contains(s.PluginID)).Select(s => s.SessionID).ToList<long>();
+                foreach (var SessionID in ListSessionIDs)
+                {
+                    var SessionIdParameter = new SqlParameter("@Sessionid", SessionID);
+                    NoofDeleted += _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Details] WHERE [SessionID] = @Sessionid", SessionIdParameter);
+                }
+                return NoofDeleted;
+            }
+        }
+        //Delete Detail
+        internal int delete_detail(long? detID)
+        {
+            var DetIDParameter = detID.HasValue ?
+                    new SqlParameter("@DetID", detID) :
+                    new SqlParameter("@DetID", typeof(long));
+            using (var _data = new Context())
+            {
+                int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Details] WHERE Det_ID = @DetID", DetIDParameter);
+                return noOfRowDeleted;
+            }
+        }
+        //Delte old detail
+        internal int delete_old_data(int? max_age)
+        {
+            var MaxAgeParameter = max_age.HasValue ?
+                    new SqlParameter("@Max_age", max_age) :
+                    new SqlParameter("@Max_age", typeof(int));
+            using (var _data = new Context())
+            {
+                int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Details] WHERE (ABS(DATEDIFF(DAY, [UpdateTime], GETDATE() )) > @MaxAge)", MaxAgeParameter);
+                return noOfRowDeleted;
+            }
+        }
+        ////Delete all
+        internal int clear_all()
+        {
+            using (var _data = new Context())
+            {
+                long? a = _data.Details.Select(s => s.Det_ID).LastOrDefault();
+                var DetIdParamether = a.HasValue ?
+                    new SqlParameter("@ident", a) :
+                    new SqlParameter("@ident", typeof(long));
+                //int noOfDetailsRowDeleted = _data.Database.ExecuteSqlCommand("ALTER TABLE[Details] DROP CONSTRAINT[FK_dbo.Details_dbo.Sessions_SessionID] TRUNCATE TABLE[Details] TRUNCATE TABLE[Sessions] ALTER TABLE[Details] ADD CONSTRAINT[FK_dbo.Details_dbo.Sessions_SessionID] FOREIGN KEY([SessionID]) REFERENCES[Sessions]([SessionID])");
+                int RemoveForeignKey = _data.Database.ExecuteSqlCommand("ALTER TABLE [Details] DROP CONSTRAINT [FK_dbo.Details_dbo.Sessions_SessionID]");
+                int ClearDetails = _data.Database.ExecuteSqlCommand("TRUNCATE TABLE [Details]");
+                int ClearSessions = _data.Database.ExecuteSqlCommand("TRUNCATE TABLE [Sessions]");
+                int AddIdent = _data.Database.ExecuteSqlCommand("DBCC CHECKIDENT ([Details], RESEED, @ident) WITH NO_INFOMSGS", DetIdParamether);
+                int AddForeignKey = _data.Database.ExecuteSqlCommand("ALTER TABLE [Details] ADD CONSTRAINT [FK_dbo.Details_dbo.Sessions_SessionID] FOREIGN KEY([SessionID]) REFERENCES [Sessions] ([SessionID])");
+                return ClearSessions;
+            }
+        }
         //Group by date
         private IEnumerable<IGrouping<string, Detail>> databydate(List<Detail> list)
         {
@@ -223,6 +310,10 @@ namespace WpfApplication1.Database
         //    }
         //}
 
+        //v2
+
+
+        //v1
 
 
     }

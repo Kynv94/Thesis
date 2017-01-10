@@ -152,6 +152,14 @@ namespace WpfApplication1
         {
             btn_start.IsEnabled = true;
             String text = e.AddedItems[0] as String;
+            int deviceIndex;
+            for (deviceIndex = 0; deviceIndex != allDevices.Count; ++deviceIndex)
+            {
+                LivePacketDevice device = allDevices[deviceIndex];
+                if (text == (device.Name + " " + device.Description))
+                    break;
+            }
+            selectedDevice = allDevices[deviceIndex];
             // OfflinePacketDevice selectedDevice = new OfflinePacketDevice(FileName);
         }
 

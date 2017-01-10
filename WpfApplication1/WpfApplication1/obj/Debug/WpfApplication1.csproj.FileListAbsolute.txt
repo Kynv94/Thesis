@@ -83,10 +83,14 @@ D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Liv
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\Livecharts.xml
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.pdb
 D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\bin\Debug\LiveCharts.Wpf.xml
-D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v1.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v4.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v5.resources
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\GeneratedInternalTypeHelper.g.cs
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.g.cs
 E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.baml
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.g.cs
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\GeneratedInternalTypeHelper.g.cs
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\LoginForm.baml
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v4.resources
+D:\Dropbox\WORK\Final\Final\Thesis\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1.Migrations.v5.resources

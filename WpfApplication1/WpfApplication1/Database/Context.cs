@@ -4,7 +4,7 @@
 
     public partial class Context : DbContext
     {
-        public Context() : base("NetTough_Databasev4")
+        public Context() : base("NetTough_Databasev5")
         {
             this.Configuration.LazyLoadingEnabled = false;
         }

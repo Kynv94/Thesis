@@ -132,7 +132,7 @@ namespace WpfApplication1.Database
             }
         }
 
-        //Deletel Details
+        //Delete Details
 
         internal int delete_details(DateTime? Date_from, DateTime? Date_to, List<int?> Protocols, List<string> Sources)
         {

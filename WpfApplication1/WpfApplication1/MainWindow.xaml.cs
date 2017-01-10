@@ -152,7 +152,7 @@ namespace WpfApplication1
         {
             btn_start.IsEnabled = true;
             String text = e.AddedItems[0] as String;
-            OfflinePacketDevice selectedDevice = new OfflinePacketDevice(FileName);
+            // OfflinePacketDevice selectedDevice = new OfflinePacketDevice(FileName);
         }
 
         public PacketCommunicator communicator;

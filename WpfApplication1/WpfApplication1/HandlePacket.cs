@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading.Tasks;
 using PcapDotNet.Packets.IpV4;
 using PcapDotNet.Packets.IpV6;
 using PcapDotNet.Packets.Arp;
@@ -10,7 +9,8 @@ using PcapDotNet.Packets.Transport;
 using PcapDotNet.Packets;
 using WpfApplication1.Database;
 using PcapDotNet.Packets.Icmp;
-using PcapDotNet.Packets.Igmp;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace WpfApplication1
 {
@@ -66,133 +66,174 @@ namespace WpfApplication1
             //IP_out
             new_session.IP_out = ipv4_packet.Destination.ToString() ?? "0.0.0.0";
             new_session.IP_out_is_v4 = true;
-            //Source Port
-            try
+            if (new_session.IP_in == new_session.IP_out && new_session.IP_in == "0.0.0.0")
             {
-                new_session.Port_in = ipv4_packet.Transport.SourcePort;
+                new_session = null;
+                new_detail = null;
             }
-            catch (Exception)
+            else
             {
-                new_session.Port_in = 0;
-            }
-            //Destination port
-            try
-            {
-                new_session.Port_out = ipv4_packet.Transport.DestinationPort;
-            }
-            catch (Exception)
-            {
-                new_session.Port_out = 0;
-            }
-            switch (ipv4_packet.Protocol.GetHashCode()) //add SSL, state, Detail 
-            {
-                //Tcp
-                case 6:
-                    {
-                        if (ipv4_packet.IsValid)
+                //Source Port
+                try
+                {
+                    new_session.Port_in = ipv4_packet.Transport.SourcePort;
+                }
+                catch (Exception)
+                {
+                    new_session.Port_in = 0;
+                }
+                //Destination port
+                try
+                {
+                    new_session.Port_out = ipv4_packet.Transport.DestinationPort;
+                }
+                catch (Exception)
+                {
+                    new_session.Port_out = 0;
+                }
+                switch (ipv4_packet.Protocol.GetHashCode()) //add SSL, state, Detail 
+                {
+                    //Tcp
+                    case 6:
                         {
-                            TcpDatagram tcp_packet = ipv4_packet.Tcp;
-                            //add session
+                            if (ipv4_packet.IsValid)
+                            {
+                                TcpDatagram tcp_packet = ipv4_packet.Tcp;
+                                //add session
 
-                            //state - new thread
-                            Session oldsession = db.get_old_session(new_session);
-                            new_session.State = 0; //unknown state
+                                //state - new thread
+                                Session oldsession = db.get_old_session(new_session);
+                                new_session.State = 0; //unknown state
 
-                            int oldsession_state;
-                            if (oldsession == null)
-                                oldsession_state = 0;
+                                int oldsession_state;
+                                if (oldsession == null)
+                                    oldsession_state = 0;
+                                else
+                                    oldsession_state = oldsession.State;
+                                //Add state to new session
+                                add_state(new_session, oldsession_state, tcp_packet);
+
+                                //SSL
+                                if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
+                                    new_session.IsSSL = true;
+                                else
+                                    new_session.IsSSL = false;
+
+                                //Detail
+                                if (ipv4_packet.Payload.IsValid)
+                                    add_detail(new_detail, new_session, ipv4_packet.Tcp);
+                                else
+                                    new_detail = null;
+                                //Neu Goi tin hien tai la http respond
+                                if (tcp_packet.Http.IsResponse)
+                                {
+                                    List<string> methods = new List<string> { "GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH" };
+                                    var old_detail = oldsession.Details.LastOrDefault();
+                                    var old_detail_text = old_detail.TextData;
+                                    //Nếu old session detail là http Request
+                                    if (methods.Any(s => old_detail_text.Contains(s)))
+                                    {
+                                        //Thêm Respond header vào old session detail
+                                        old_detail_text = old_detail_text + "\r\n" + new_detail.TextData;
+                                        old_detail.TextData = old_detail_text;
+                                        old_detail.BinData = old_detail.BinData + "\r\n" + new_detail.BinData;
+                                        old_detail.UpdateTime = new_detail.UpdateTime;
+                                        //Update
+                                        db.UpdateDetail(old_detail);
+                                        new_session = null;
+                                        new_detail = null;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        //Respond gặp old session detail là respond
+                                        //Cập nhật thời gian tương tác gần nhất để tránh timeout
+                                        old_detail.UpdateTime = new_detail.UpdateTime;
+                                        db.UpdateDetail(old_detail);
+                                        new_detail = null;
+                                        new_session = null;
+                                    }
+                                }
+                                //Thêm Detail vào old session
+                                break;
+                            }
                             else
-                                oldsession_state = oldsession.State;
-                            //Add state to new session
-                            add_state(new_session, oldsession_state, tcp_packet);
+                            {
+                                new_session = null;
+                                new_detail = null;
+                            }
+                            break;
+                        }
 
-                            //SSL - newthread
-                            if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
-                                new_session.IsSSL = true;
-                            else
+                    //InternetControlMessageProtocol
+                    case 1:
+                        {
+                            if (ipv4_packet.Icmp.IsValid)
+                            {
                                 new_session.IsSSL = false;
-
-                            //Detail - New thread
-                            add_detail(new_detail, new_session, ipv4_packet.Tcp);
-
+                                new_session.State = 4;
+                                add_detail(new_detail, new_session, ipv4_packet.Icmp);
+                            }
+                            else
+                            {
+                                new_session = null;
+                                new_detail = null;
+                            }
+                            break;
                         }
-                        else
+                    //Udp
+                    case 17:
                         {
-                            new_session = null;
-                            new_detail = null;
+                            if (ipv4_packet.Udp.IsValid)
+                            {
+                                //SSL - newthread
+                                if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
+                                    new_session.IsSSL = true;
+                                else
+                                    new_session.IsSSL = false;
+                                //State
+                                new_session.State = 4;
+                                //new thread
+                                add_detail(new_detail, new_session, ipv4_packet.Udp);
+                            }
+                            else
+                            {
+                                new_session = null;
+                                new_detail = null;
+                            }
+                            break;
                         }
-                        break;
-                    }
 
-                //InternetControlMessageProtocol
-                case 1:
-                    {
-                        if (ipv4_packet.Icmp.IsValid)
+                    //InternetGroupManagementProtocol
+                    //case 2:
+                    //    {
+                    //        if (ipv4_packet.Igmp.IsValid)
+                    //        {
+                    //            new_session.State = 4;
+                    //            new_session.IsSSL = false;
+                    //            //newthread
+                    //            new_detail.UpdateTime = new_session.Started;
+                    //            add_detail(new_detail, new_session, ipv4_packet.Igmp);
+                    //        }
+                    //        else
+                    //        {
+                    //            new_session = null;
+                    //            new_detail = null;
+                    //        }
+                    //        break;
+                    //    }
+
+                    //Generic Routing Encapsulation
+                    //case 47: break;
+                    default:
                         {
                             new_session.IsSSL = false;
-                            new_session.State = 4;
-                            add_detail(new_detail, new_session, ipv4_packet.Icmp);
-                        }
-                        else
-                        {
-                            new_session = null;
+                            new_session.State = 4; //done
+                                                   //Detail
                             new_detail = null;
+                            break;
                         }
-                        break;
-                    }
-
-                //Udp
-                case 17:
-                    {
-                        if (ipv4_packet.Udp.IsValid)
-                        {
-                            //SSL - newthread
-                            if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
-                                new_session.IsSSL = true;
-                            else
-                                new_session.IsSSL = false;
-                            //State
-                            new_session.State = 4;
-                            //new thread
-                            add_detail(new_detail, new_session, ipv4_packet.Udp);
-                        }
-                        else
-                        {
-                            new_session = null;
-                            new_detail = null;
-                        }
-                        break;
-                    }
-
-                //InternetGroupManagementProtocol
-                case 2:
-                    {
-                        if (ipv4_packet.Igmp.IsValid)
-                        {
-                            new_session.State = 4;
-                            new_session.IsSSL = false;
-                            //newthread
-                            new_detail.UpdateTime = new_session.Started;
-                            add_detail(new_detail, new_session, ipv4_packet.Igmp);
-                        }
-                        else
-                        {
-                            new_session = null;
-                            new_detail = null;
-                        }
-                        break;
-                    }
-
-                //Generic Routing Encapsulation
-                //case 47: break;
-                default:
-                    {
-                        new_session.IsSSL = false;
-                        new_session.State = 4; //done
-                                               //Detail
-                        new_detail = null;
-                        break;
-                    }
+                }
             }
         }
         //TCP state cua Ipv4
@@ -377,7 +418,10 @@ namespace WpfApplication1
                             HttpRequestDatagram request = (HttpRequestDatagram)tcp.Http;
 
                             //TextData
-                            new_detail.TextData = request.Decode(Encoding.UTF8) ?? string.Empty;
+                            string requesttext = request.Method.Method.ToString() + request.Uri.ToString()
+                            + " " + request.Version.ToString() + "\r\n" + request.Header.ToString() ?? string.Empty;
+
+                            new_detail.TextData = requesttext ?? string.Empty;
 
                             //KeyData
                             //if (request.Header != null)
@@ -413,7 +457,11 @@ namespace WpfApplication1
                             HttpResponseDatagram respond = (HttpResponseDatagram)tcp.Http;
 
                             //TextData
-                            new_detail.TextData = respond.Decode(Encoding.UTF8) ?? string.Empty;
+                            string respondtext = (respond.Version.ToString() + " " + respond.StatusCode
+                            + " " + respond.ReasonPhrase.Decode(Encoding.UTF8)
+                            + "\r\n" + respond.Header.ToString()) ?? string.Empty;
+
+                            new_detail.TextData = respondtext ?? string.Empty;
 
                             //Keydata
                             try
@@ -445,20 +493,18 @@ namespace WpfApplication1
                         }
                         catch(Exception)
                         {
-                            new_detail.KeyData = new_session.IP_out;
+                            new_detail.KeyData = string.Empty;
                         }
-
                         new_detail.TextData = string.Empty;
                         break;
                     }
 
                 default:
                     {
-                        PortService ps = new PortService();
                         //KeyData
-                        new_detail.KeyData =  ps.GetServiceName(new_detail.PluginID) ?? string.Empty;
+                        new_detail.KeyData = string.Empty;
                         //TextData
-                        new_detail.TextData = tcp.Payload.Decode(Encoding.UTF8) ?? string.Empty;
+                        new_detail.TextData = string.Empty;
                         break;
                     }
             }
@@ -478,23 +524,30 @@ namespace WpfApplication1
                 new_detail.PluginID = 0;
             }
             //TextData and KeyData
-            new_detail.TextData = string.Empty;
+            new_detail.KeyData = string.Empty;
             if (udp_packet.Dns.IsValid)
             {
+                new_detail.PluginID = 53;
                 //KeyData
-                new_detail.KeyData = "Domain Name Service";
+                if (udp_packet.Dns.IsQuery)
+                    new_detail.KeyData = "DNS Query";
+                if (udp_packet.Dns.IsResponse)
+                    new_detail.KeyData = "DNS Respond";
                 //TextData
-                //if (udp_packet.Dns.IsQuery)
-                //    new_detail.TextData = "DNS Query";
-                //if (udp_packet.Dns.IsResponse)
-                //    new_detail.TextData = "DNS Respond";
                 new_detail.TextData = udp_packet.Dns.Decode(Encoding.UTF8) ?? string.Empty;
             }
             else
             {
-                PortService ps = new PortService();
                 //KeyData
-                new_detail.KeyData = ps.GetServiceName(new_detail.PluginID) ?? string.Empty;
+                try
+                {
+                    new_detail.KeyData = Dns.GetHostEntry(new_session.IP_out).HostName;
+                }
+                catch (Exception)
+                {
+                    new_detail.KeyData = string.Empty;
+                }
+                //textdata
                 new_detail.TextData = string.Empty;
             }
             //BinData
@@ -502,75 +555,102 @@ namespace WpfApplication1
             new_detail.BinData = string.Empty;
         }
         //Detail cua cac goi IGMP
-        private static void add_detail(Detail new_detail, Session new_session, IgmpDatagram igmp)
-        {
-            //UpdateTime
-            new_detail.UpdateTime = new_session.Started;
-            //PluginID
-            new_detail.PluginID = 0;
-            //Keydata
-            new_detail.KeyData = "Internet Group Management Protocol";
-            //TextData
-            new_detail.TextData = igmp.MessageType.ToString() ?? string.Empty;
-            //BinData
-            // new_detail.BinData = igmp.ToHexadecimalString();
-            new_detail.BinData = string.Empty;
-        }
+        //private static void add_detail(Detail new_detail, Session new_session, IgmpDatagram igmp)
+        //{
+        //    //UpdateTime
+        //    new_detail.UpdateTime = new_session.Started;
+        //    //PluginID
+        //    new_detail.PluginID = 2; //igmp
+        //    //Keydata
+        //    new_detail.KeyData = "Internet Group Management Protocol"; igmp.
+        //    //TextData
+        //    new_detail.TextData = igmp.MessageType.ToString() ?? string.Empty;
+        //    //BinData
+        //    // new_detail.BinData = igmp.ToHexadecimalString();
+        //    new_detail.BinData = string.Empty;
+        //}
         //Detail cua cac goi ICMP
         private static void add_detail(Detail new_detail, Session new_session, IcmpDatagram icmp)
         {
             //UpdateTime
             new_detail.UpdateTime = new_session.Started;
             //PluginID
-            new_detail.PluginID = 0;
+            new_detail.PluginID = 1; //ICMP
             //Keydata
-            new_detail.KeyData = "Internet Control Message Protocol";
+            new_detail.KeyData = icmp.MessageType.ToString() ?? string.Empty; ;
             //TextData
             new_detail.TextData = icmp.MessageTypeAndCode.ToString() ?? string.Empty;
             //BinData
-            //new_detail.BinData = icmp.ToHexadecimalString();
-            new_detail.BinData = string.Empty;
+            if (icmp.Payload.IsValid)
+                new_detail.BinData = icmp.Payload.Decode(Encoding.UTF8);
+            else
+                new_detail.BinData = string.Empty;
         }
         //add information cac goi Ipv6
         private static void add_new_packet(Session new_session, Detail new_detail, IpV6Datagram ipv6_packet)
         {
             //Session: IP, Port, SSL, State
-            new_session.IP_in = ipv6_packet.Source.ToString();
+            
+            //IP Address
+            new_session.IP_in = ipv6_packet.Source.ToString() ?? "::";
             new_session.IP_in_is_v4 = false;
-            new_session.IP_out = ipv6_packet.CurrentDestination.ToString();
+            new_session.IP_out = ipv6_packet.CurrentDestination.ToString() ?? "::";
             new_session.IP_out_is_v4 = false;
-            try
+            if (new_session.IP_in == new_session.IP_out && new_session.IP_in == "::")
             {
-                new_session.Port_in = ipv6_packet.Transport.SourcePort;
+                new_session = null;
+                new_detail = null;
             }
-            catch (Exception)
-            { new_session.Port_in = 0; }
-            try
+            else
             {
-                new_session.Port_out = ipv6_packet.Transport.DestinationPort;
-            }
-            catch (Exception)
-            { new_session.Port_out = 0; }
-            new_session.IsSSL = false;
-            new_session.State = 4;
+                //Port
+                try
+                {
+                    new_session.Port_in = ipv6_packet.Transport.SourcePort;
+                }
+                catch (Exception)
+                {
+                    new_session.Port_in = 0;
+                }
+                try
+                {
+                    new_session.Port_out = ipv6_packet.Transport.DestinationPort;
+                }
+                catch (Exception)
+                {
+                    new_session.Port_out = 0;
+                }
 
-            //Details
-            new_detail = null;
+                new_session.IsSSL = false;
+                new_session.State = 4;
+
+                //Details
+                new_detail = null;
+            }
         }
         //add information cac goi Arp
         private static void add_new_packet(Session new_session, Detail new_detail, ArpDatagram arp_packet)
         {
             //Session: IP, Port, SSL, State
-            new_session.IP_in = arp_packet.SenderProtocolIpV4Address.ToString();
+            new_session.IP_in = arp_packet.SenderProtocolIpV4Address.ToString() ?? "0.0.0.0";
             new_session.IP_in_is_v4 = true;
-            new_session.IP_out = arp_packet.TargetProtocolIpV4Address.ToString();
+            new_session.IP_out = arp_packet.TargetProtocolIpV4Address.ToString() ?? "0.0.0.0";
             new_session.IP_out_is_v4 = true;
-            new_session.Port_in = 0;
-            new_session.Port_out = 0;
-            new_session.IsSSL = false;
-            new_session.State = 4;
-            //Details
-            new_detail = null;
+            if (new_session.IP_in == new_session.IP_out && new_session.IP_in == "0.0.0.0")
+            {
+                new_session = null;
+                new_detail = null;
+            }
+            else
+            {
+                new_session.Port_in = 0;
+                new_session.Port_out = 0;
+                new_session.IsSSL = false;
+                new_session.State = 4;
+
+                //Details
+                new_detail = null;
+            }
         }
 
     }

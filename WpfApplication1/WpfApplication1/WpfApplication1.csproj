@@ -96,6 +96,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Alert_Design.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DetailChart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LoginForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -104,11 +112,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Alert_Design.xaml.cs">
+      <DependentUpon>Alert_Design.xaml</DependentUpon>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Convert_Protocol.cs" />
+    <Compile Include="Database\Alert.cs" />
+    <Compile Include="Database\AlertWeb.cs" />
+    <Compile Include="Database\HandleAlert.cs" />
+    <Compile Include="DetailChart.xaml.cs">
+      <DependentUpon>DetailChart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GridViewSort.cs" />
     <Compile Include="Database\Packet_from_db.cs" />
     <Compile Include="Database\Context.cs" />
@@ -125,9 +142,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\201701101851205_v5.cs" />
-    <Compile Include="Migrations\201701101851205_v5.Designer.cs">
-      <DependentUpon>201701101851205_v5.cs</DependentUpon>
+    <Compile Include="Migrations\201701151659466_v6.cs" />
+    <Compile Include="Migrations\201701151659466_v6.Designer.cs">
+      <DependentUpon>201701151659466_v6.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Database\PortService.cs" />
@@ -144,8 +161,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Migrations\201701101851205_v5.resx">
-      <DependentUpon>201701101851205_v5.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201701151659466_v6.resx">
+      <DependentUpon>201701151659466_v6.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

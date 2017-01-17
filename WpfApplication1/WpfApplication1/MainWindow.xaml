@@ -99,19 +99,29 @@
                             <Grid x:Name="grid_filter" Background="#FFE5E5E5" Margin="0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="101"/>
-                                    <ColumnDefinition Width="102"/>
                                     <ColumnDefinition Width="101"/>
-                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="101"/>
+                                    <ColumnDefinition Width="197"/>
+                                    <ColumnDefinition Width="235"/>
                                 </Grid.ColumnDefinitions>
                                 <!-- Filter Mac -->
                                 <ToggleButton x:Name ="btn_filter_ipsrc" Content="IP Source" Margin="0" BorderBrush="{x:Null}" Foreground="Black" OpacityMask="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}" Background="#FFE5E5E5"/>
                                 <Popup x:Name="popup_filter_ipsrc" IsOpen="{Binding IsChecked, ElementName=btn_filter_ipsrc}" 
                                     PlacementTarget="{Binding ElementName=btn_filter_ipsrc}" StaysOpen="False">
-                                    <Grid Background="White" Height="115" VerticalAlignment="Top" Width="200">
+                                    <Grid Background="White" Height="239" VerticalAlignment="Top" Width="200">
                                         <Border Background="White" BorderThickness="1" BorderBrush="Black" />
+                                        <Button x:Name="btn_add_ip" Content="+" Margin="135,11,40,203" Width="25" Height="25" Click="btn_add_ip_Click" IsDefault="True"/>
+                                        <Button x:Name="btn_del_ip" Content="x" Margin="165,11,10,203" Width="25" Height="25" Click="btn_del_ip_Click" IsEnabled="false"/>
                                         <Label x:Name="lb_ipadd" Content="IP Address:" Margin="10,10,106,45"/>
                                         <ComboBox x:Name="cb_ipadd_input" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="180"/>
-                                        <Button x:Name="update_ip_list" Content="Update" HorizontalAlignment="Left" Margin="61,88,0,0" VerticalAlignment="Top" Width="75" Click="update_ip_list_Click"/>
+                                        <Button x:Name="update_ip_list" Content="Update" HorizontalAlignment="Left" Margin="61,82,0,0" VerticalAlignment="Top" Width="75" Click="update_ip_list_Click"/>
+                                        <ListView x:Name="lv_ip" HorizontalAlignment="Left" Height="126" Margin="0,113,0,0" VerticalAlignment="Top" Width="200" SelectionChanged="lv_ip_SelectionChanged">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="List IP" Width="190"/>
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
                                         <!--<TextBox x:Name="tb_ipadd_input" HorizontalAlignment="Left" Height="23" Margin="10,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="180"/>-->
 
 
@@ -136,7 +146,7 @@
                                 <Popup x:Name="popup_filter_protocol" IsOpen="{Binding IsChecked, ElementName=btn_filter_protocol}" 
                                     PlacementTarget="{Binding ElementName=btn_filter_protocol}" StaysOpen="False">
                                     <Border Background="White" BorderThickness="1" BorderBrush="Black" Grid.Column="2" Grid.ColumnSpan="2">
-                                        <WrapPanel x:Name="wrap_filter_protocol" Height="63" Width="170" Background="White" Grid.Column="2" Grid.ColumnSpan="2">
+                                        <WrapPanel x:Name="wrap_filter_protocol" Height="65" Width="170" Background="White" Grid.Column="2" Grid.ColumnSpan="2">
                                             <CheckBox x:Name="cb_web" Content="Web" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" />
                                             <CheckBox x:Name="cb_ftp" Content="FTP" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" IsChecked="True" />
                                             <CheckBox x:Name="cb_dns" Content="DNS" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" />
@@ -146,7 +156,8 @@
                                 </Popup>
 
                                 <!-- Filter Apply -->
-                                <Button x:Name="btn_filter_apply" Content="Apply" Grid.Column="3" Background="#FFE5E5E5" Margin="70,0,0,0" Width="84" BorderBrush="{x:Null}" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" Height="70" Click="btn_filter_apply_Click" />
+                                <Button x:Name="btn_filter_apply" Content="Apply" Grid.Column="3" Background="{x:Null}" BorderBrush="{x:Null}" HorizontalContentAlignment="Center" Click="btn_filter_apply_Click" Margin="2,0" HorizontalAlignment="Right" Width="101" />
+                                <Button x:Name="btn_filter_delete" Content="Delete" Grid.Column="4" Background="{x:Null}" BorderBrush="{x:Null}" HorizontalContentAlignment="Center" Click="btn_filter_delete_Click" Width="101" HorizontalAlignment="Left" />
 
                             </Grid>
                         </TabItem>
@@ -157,7 +168,7 @@
                                     <ColumnDefinition Width="405" />
                                     <ColumnDefinition Width="333"/>
                                 </Grid.ColumnDefinitions>
-                                <Button x:Name="btn_import" Content="Import" Margin="30,5,0,0" Grid.Column="1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                <Button x:Name="btn_import" Content="Import" Margin="30,5,0,0" Grid.Column="1" Width="60" Height="60" HorizontalAlignment="Left" VerticalAlignment="Top" Click="btn_import_Click"/>
                                 <ComboBox x:Name="cb_device" Text="--Select device--" SelectionChanged="cb_device_SelectionChanged" Margin="60,24,0,0" VerticalAlignment="Top" Height="26" HorizontalAlignment="Left" Width="174"/>
                                 <Button x:Name="btn_stop" Content="Stop" IsEnabled="False" Margin="330,11,0,0" Height="50" Click="Stop_Btn" Width="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" RenderTransformOrigin="1.033,0.775" HorizontalAlignment="Left" VerticalAlignment="Top">
                                     <Button.Background>
@@ -170,7 +181,7 @@
                                     </Button.Background>
                                 </Button>
                                 <Label x:Name="label_device" Content="Device" Margin="10,24,0,0" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Width="45"/>
-                                
+
                             </Grid>
                         </TabItem>
                     </TabControl>
@@ -193,7 +204,7 @@
                             <RowDefinition/>
                         </Grid.RowDefinitions>
                     </Grid>
-                    <lvc:CartesianChart x:Name="line_chart" Series="{Binding SeriesCollection}" LegendLocation="Right" Margin="0" >
+                    <lvc:CartesianChart x:Name="line_chart" Series="{Binding SeriesCollection}" LegendLocation="Right" Margin="0" DataClick="line_chart_DataClick">
 
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis FontSize="15" Title="Packets" LabelFormatter="{Binding YFormatter}"></lvc:Axis>
@@ -215,7 +226,7 @@
                     </Grid.RowDefinitions>
 
                     <Grid x:Name ="grid_alert_control" Background="LightGray">
-                        <Button x:Name="btn_add_alert" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                        <Button x:Name="btn_add_alert" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="btn_add_alert_Click">
                             <StackPanel>
                                 <Image Source="Image/add_bell.png" Width="50" Height="50" />
                             </StackPanel>
@@ -244,19 +255,16 @@
                             <GridView>
 
                                 <GridViewColumn Header = "Enabled" 
-                                    DisplayMemberBinding = "{Binding}" Width= "100" />
-
-                                <GridViewColumn Header = "Count" 
-                                    DisplayMemberBinding = "{Binding}" Width= "100" />
+                                    DisplayMemberBinding = "{Binding Enable}" Width= "100" />
 
                                 <GridViewColumn Header = "Name" 
-                                    DisplayMemberBinding = "{Binding}" Width= "150" />
+                                    DisplayMemberBinding = "{Binding AlertName}" Width= "150" />
 
-                                <GridViewColumn Header = "Protocols" 
-                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+                                <GridViewColumn Header = "Anoucement" 
+                                    DisplayMemberBinding = "{Binding Anouncement}" Width= "100" />
 
-                                <GridViewColumn Header = "Action" 
-                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+                                <GridViewColumn Header = "Popup" 
+                                    DisplayMemberBinding = "{Binding Popup}" Width= "100" />
 
                             </GridView>
                         </ListView.View>
@@ -277,7 +285,7 @@
                                 <GridViewColumn Header = "Alert Name" 
                                     DisplayMemberBinding = "{Binding}" Width= "200" />
 
-                                <GridViewColumn Header = "Event ID(s)" 
+                                <GridViewColumn Header = "Discription" 
                                     DisplayMemberBinding = "{Binding}" Width= "300" />
 
                             </GridView>

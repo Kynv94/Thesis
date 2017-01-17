@@ -22,14 +22,18 @@ namespace WpfApplication1.Database
                     oldsession.State = new_session.State; //cập nhật state
                     oldsession.Ended = new_session.Ended; // cập nhật thời gian cuối
                     oldsession.Details.Add(new_detail);
-                    Int16 flag = 0;
+                    short flag = 0;
+                    //Kiểm tra collenction của session được load đủ.
                     foreach (var detail in oldsession.Details)
                     {
                         if (detail.SessionID != oldsession.SessionID)
                             continue;
                         flag += 1;
-                        if (flag == oldsession.Details.Count)
-                            add_new_detail(oldsession);
+                    }
+                    if (flag == oldsession.Details.Count)
+                    {
+                        oldsession.Details.Add(new_detail);
+                        add_new_detail(oldsession);
                     }
                 }
                 else //Gói tin không thuộc session cũ
@@ -111,11 +115,11 @@ namespace WpfApplication1.Database
         }
 
         /////get data
-        internal List<Detail> getdata(string ip_src, DateTime date_from, DateTime date_to, List<int> protocol)
+        internal List<Detail> getdata(List<string> ip_src, DateTime date_from, DateTime date_to, List<int> protocol)
         {
             using (var _data = new Context())
             {
-                var result = _data.Details.Include(s => s.Session).Where(s => s.Session.IP_in == ip_src
+                var result = _data.Details.Include(s => s.Session).Where(s => ip_src.Contains(s.Session.IP_in)
                                                     && s.UpdateTime >= date_from && s.UpdateTime <= date_to
                                                     && protocol.Contains(s.PluginID)).ToList();
                 return result;
@@ -134,7 +138,7 @@ namespace WpfApplication1.Database
 
         //Delete Details
 
-        internal int delete_details(DateTime? Date_from, DateTime? Date_to, List<int?> Protocols, List<string> Sources)
+        internal int delete_details(List<string> Sources, DateTime? Date_from, DateTime? Date_to, List<int> Protocols )
         {
             int NoofDeleted = 0;
             using (var _data = new Context())
@@ -150,6 +154,7 @@ namespace WpfApplication1.Database
                 return NoofDeleted;
             }
         }
+
         //Delete Detail
         internal int delete_detail(long? detID)
         {
@@ -201,12 +206,17 @@ namespace WpfApplication1.Database
         //Group by Party A
         internal IEnumerable<IGrouping<string, Detail>> databyPartyA()
         {
-            using (var _data = new Context())
+            try
             {
-                var datadetail = _data.Details;
-                var groupofPartyA = datadetail.GroupBy(s => s.Session.IP_in).ToList();
-                return groupofPartyA;
+                using (var _data = new Context())
+                {
+                    var datadetail = _data.Details;
+                    var groupofPartyA = datadetail.GroupBy(s => s.Session.IP_in).ToList();
+                    return groupofPartyA;
+                }
             }
+            catch(Exception)
+            { return null;  }
         }
 
         public void Do_time_out(object sender, DoWorkEventArgs e)
@@ -218,9 +228,84 @@ namespace WpfApplication1.Database
             }
         }
 
-       
+        public void Add_Alert()
+        {
+            using (var _data = new Context())
+            {
+                
+            }
+        }
 
-        
+        //==================================================== ALert==================================================
+        //Thêm alert
+        internal Alert get_alert(int _alertID)
+        {
+            using (var _data = new Context())
+            {
+                var result = _data.Alerts.Where(s => s.AlertID == _alertID).FirstOrDefault();
+                return result;
+            }
+        }
+        internal AlertWeb get_alert_web(int _webID)
+        {
+            using (var _data = new Context())
+            {
+                return _data.AlertWebs.Where(s => s.WebID == _webID).LastOrDefault();
+            }
+        }
+        internal void add_alert(Alert new_alert)
+        {
+            using (var _data = new Context())
+            {
+                _data.Alerts.Add(new_alert);
+                _data.SaveChanges();
+            }
+        }
+        //Thêm events vào alert
+        internal void add_event(AlertWeb new_event, Alert _alert)
+        {
+            new_event.Alert = _alert ;
+            using (var _data = new Context())
+            {
+                _data.AlertWebs.Add(new_event);
+                _data.SaveChanges();
+            }
+        }
+
+        //Chỉnh sửa alert
+        internal void modify_alert(Alert _alert)
+        {
+            using (var _data = new Context())
+            {
+                _data.Entry(_alert).State = System.Data.Entity.EntityState.Modified;
+                _data.SaveChanges();
+            }
+        }
+
+        //Xóa alert
+        internal int delete_alert(int? _alertID)
+        {
+            var AlertIDParameter = _alertID.HasValue ?
+                    new SqlParameter("@alertID", _alertID) :
+                    new SqlParameter("@alertID", typeof(int));
+            using (var _data = new Context())
+            {
+                int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Alerts] WHERE AlertID = @alertID", AlertIDParameter);
+                return noOfRowDeleted;
+            }
+        }
+        internal int delete_web(int? _webID)
+        {
+            var WebIDParameter = _webID.HasValue ?
+                    new SqlParameter("@webID", _webID) :
+                    new SqlParameter("@webID", typeof(int));
+            using (var _data = new Context())
+            {
+                int noOfRowDeleted = _data.Database.ExecuteSqlCommand("DELETE FROM [dbo].[AlertWebEntrys] WHERE WebID = @webID", WebIDParameter);
+                return noOfRowDeleted;
+            }
+        }
+
 
         ////Delete Detail
         //internal int delete_detail(long? detID)

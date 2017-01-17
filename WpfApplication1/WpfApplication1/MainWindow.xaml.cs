@@ -19,6 +19,7 @@ using System.Security.AccessControl;
 using System.Security;
 using System.IO;
 using System.Security.Cryptography;
+using Microsoft.Win32;
 
 namespace WpfApplication1
 {
@@ -35,10 +36,36 @@ namespace WpfApplication1
         private BackgroundWorker update_state;
         public static string password_hash = string.Empty;
 
+        public SeriesCollection SeriesCollection { get; set; }
+        public List<string> Labels { get; set; }
+        public Func<int, string> YFormatter { get; set; }
+
+        private List<Detail> list_packet_filter;
+        private List<string> ip_src;
+        private DateTime date_from;
+        private DateTime date_to;
+        private List<int> protocol;
+        internal static List <int> web = new List<int> { 443, 80 };
+        internal static List<int> ftp = new List<int> { 20, 21 };
+        internal static List<int> dns = new List<int> { 53, 137, 5355 };
+        internal static List<int> mail = new List<int> { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 };
+        internal static List<AlertWeb> list_web = new List<AlertWeb>();
+
+        public PacketCommunicator communicator;
+        private List<Packet> List_2;
+
+        public PacketDevice selectedDevice_online;
+
+        LoginForm lf;
+        internal static bool check_password;
+
+        internal static List<Alert> list_alert = new List<Alert>();
+
         public MainWindow()
         {
             InitializeComponent();
 
+            // list_web = db.get_alert_web();
             string file_password = @".\password.txt";
             if (File.Exists(file_password) == false)
             {
@@ -69,9 +96,13 @@ namespace WpfApplication1
                 }
             }
 
-            // create ip list
-            keys = db.databyPartyA().Select(s => s.Key).ToList();
-            cb_ipadd_input.ItemsSource = keys;
+            try
+            {
+                // create ip list
+                keys = db.databyPartyA().Select(s => s.Key).ToList();
+                cb_ipadd_input.ItemsSource = keys;
+            }
+            catch (Exception) { }
 
             // Retrieve the device list from the local machine
             allDevices = LivePacketDevice.AllLocalMachine;
@@ -100,8 +131,6 @@ namespace WpfApplication1
             Timer timer = new Timer(8 * 60 * 1000);
             timer.Elapsed += timer_Elapsed;
             timer.Start();
-
-            
 
         }
 
@@ -143,11 +172,10 @@ namespace WpfApplication1
                 string caption = "Anoucement";
                 MessageBoxButton buttons = MessageBoxButton.OK;
                 MessageBoxResult result;
-                result = MessageBox.Show(message, caption, buttons);
+                result = MessageBox.Show(message, caption, buttons, MessageBoxImage.Information);
             });
         }
 
-        public PacketDevice selectedDevice;
         private void cb_device_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             btn_start.IsEnabled = true;
@@ -159,16 +187,21 @@ namespace WpfApplication1
                 if (text == (device.Name + " " + device.Description))
                     break;
             }
-            selectedDevice = allDevices[deviceIndex];
-            // OfflinePacketDevice selectedDevice = new OfflinePacketDevice(FileName);
+            selectedDevice_online = allDevices[deviceIndex];
+            
         }
 
-        public PacketCommunicator communicator;
-        List<Packet> List_2;
+        
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
             {
+                var selectedDevice = selectedDevice_online;
+                if (filename_import != null)
+                {
+                    selectedDevice = selectedDevice_offline;
+                }
+                
                 // Open the device
                 using (communicator =
                     selectedDevice.Open(65536,                                  // portion of the packet to capture
@@ -176,6 +209,7 @@ namespace WpfApplication1
                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                         1000))                                  // read timeout
                 {
+                    
                     // Check the link layer. We support only Ethernet for simplicity.
                     if (communicator.DataLink.Kind != DataLinkKind.Ethernet)
                     {
@@ -186,10 +220,22 @@ namespace WpfApplication1
                         result = MessageBox.Show(message, caption, buttons);
                         return;
                     }
+
+                    
                     // start the capture
                     communicator.ReceivePackets(0, PacketHandler);
-                    //kiểm tra nếu List có đủ hơn 300 gói đã bắt
 
+                    List_2 = list_new_packet;
+                    list_new_packet = new List<Packet>();
+
+                    BackgroundWorker handle_packet = new BackgroundWorker();
+                    handle_packet.WorkerReportsProgress = true;
+                    handle_packet.DoWork += Add_Database;
+                    if (filename_import != null)
+                    {
+                        handle_packet.RunWorkerCompleted += PacketHandler_Completed;
+                    }
+                    handle_packet.RunWorkerAsync();
                 }
             }
             catch (Exception) { }
@@ -199,8 +245,6 @@ namespace WpfApplication1
         {
             foreach (var item in List_2)
                 HandlePacket.add_informationv2(item);
-            //keys = db.databyPartyA().Select(s => s.Key).ToList();
-            //cb_ipadd_input.ItemsSource = keys;
         }
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
@@ -212,6 +256,7 @@ namespace WpfApplication1
             else
             {
                 list_new_packet.Add(packet);
+
                 if (list_new_packet.Count >= 500)
                 {
                     List_2 = list_new_packet;
@@ -221,13 +266,36 @@ namespace WpfApplication1
                     handle_packet.WorkerReportsProgress = true;
                     handle_packet.DoWork += Add_Database;
                     handle_packet.RunWorkerAsync();
+
+                    BackgroundWorker handle_alert = new BackgroundWorker();
+                    handle_alert.WorkerReportsProgress = true;
+                    handle_alert.DoWork += Show_Alert;
+                    handle_alert.RunWorkerAsync();
                 }
+
             }
 
 
         }
-        LoginForm lf;
-        internal static bool check_password;
+
+        private void Show_Alert (object sender, DoWorkEventArgs e)
+        {
+           // list
+        }
+
+        private void PacketHandler_Completed(object sender, RunWorkerCompletedEventArgs e)
+        {
+            filename_import = null;
+            btn_import.Dispatcher.Invoke(()
+                =>
+            {
+                IsEnabled = true;
+                btn_start.IsEnabled = true;
+                tb_total.Text = null;
+                MessageBox.Show("Done", "Import", MessageBoxButton.OK, MessageBoxImage.Information);
+            });
+        }
+
         private void Start_Btn(object sender, RoutedEventArgs e)
         {
             if (lf == null || lf.IsActive == false)
@@ -242,15 +310,15 @@ namespace WpfApplication1
                 cb_device.IsEnabled = false;
                 btn_start.IsEnabled = false;
                 btn_stop.IsEnabled = true;
+                btn_import.IsEnabled = false;
 
 
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.WorkerReportsProgress = true;
                 worker.DoWork += worker_DoWork;
-                worker.RunWorkerAsync(1000);
+                worker.RunWorkerAsync();
             }
         }
-
 
         private void Stop_Btn(object sender, RoutedEventArgs e)
         {
@@ -258,9 +326,32 @@ namespace WpfApplication1
             cb_device.IsEnabled = true;
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
+            btn_import.IsEnabled = true;
 
             communicator.Break();
-            
+
+        }
+
+        private string filename_import = null;
+        private OfflinePacketDevice selectedDevice_offline;
+        private void btn_import_Click(object sender, RoutedEventArgs e)
+        {    
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Pcap file (*.pcap)|*.pcap";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                filename_import = openFileDialog.FileName;
+
+                selectedDevice_offline = new OfflinePacketDevice(filename_import);
+                btn_import.IsEnabled = false;
+                btn_start.IsEnabled = false;
+                tb_total.Text = "IMPORTING";
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.WorkerReportsProgress = true;
+                worker.DoWork += worker_DoWork;
+                worker.RunWorkerAsync();
+
+            }
         }
 
         public void StackPanel_Add(StackPanel sp, List<System.Windows.UIElement> list)
@@ -277,42 +368,49 @@ namespace WpfApplication1
             if (e.AddedItems.Count == 0)
                 return;
             Detail packet = e.AddedItems[0] as Detail;
+            sv_discription.Content = null;
             try
             {
                 if (packet.TextData != null)
                 {
+
                     sv_discription.Content = packet.TextData;
                 }
             }
             catch (Exception) { }
         }
 
-        private ChartValues<int> Number_Packet(DateTime date_from, DateTime date_to)
+        private ChartValues<ObservableValue> Number_Packet(string ip, DateTime date_from, DateTime date_to)
         {
-            ChartValues<int> np = new ChartValues<int>();
+            ChartValues<ObservableValue> np = new ChartValues<ObservableValue>();
             for (DateTime time = date_from; time <= date_to; time = time.AddDays(1))
             {
-                np.Add(list_packet_filter.Count(i => i.UpdateTime >= time && i.UpdateTime <= time.AddDays(1)));
+                np.Add(new ObservableValue(list_packet_filter.Count(i => i.Session.IP_in == ip && i.UpdateTime >= time && i.UpdateTime <= time.AddDays(1))));
             }
             return np;
         }
         // Chart
-        public void BasicLine(string ip_src, DateTime date_from, DateTime date_to)
+        public void BasicLine(List<string> ip_src, DateTime date_from, DateTime date_to)
         {
             InitializeComponent();
 
+            SeriesCollection = null;
+            Labels = null;
+            YFormatter = null;
 
-            SeriesCollection = new SeriesCollection
+            SeriesCollection = new SeriesCollection();
+            foreach (string ip in ip_src)
             {
+                SeriesCollection.Add(
                 new LineSeries
                 {
-                    Title = ip_src,
-                    Values = Number_Packet(date_from, date_to),
-                    // Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
-                    // LineSmoothness = 0,
-                },
-
-            };
+                    Title = ip,
+                    Values = Number_Packet(ip, date_from, date_to),
+                    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
+                    LineSmoothness = 0,
+                }
+                );
+            }
             Labels = new List<string>();
             for (DateTime time = date_from; time <= date_to; time = time.AddDays(1))
             {
@@ -327,45 +425,45 @@ namespace WpfApplication1
             //    Values = new ChartValues<double> { 5, 3, 2, 4 },
             //    Fill = new BrushConverter().ConvertFromString("#00000000") as Brush,
             //    LineSmoothness = 0, //0: straight lines, 1: really smooth lines
-            //    // PointGeometry = Geometry.Parse("m 25 70.36218 20 -28 -20 22 -8 -6 z"),
-            //    // PointGeometrySize = 50,
-            //    // PointForeround = Brushes.Gray
             //});
 
             //modifying any series values will also animate and update the chart
             // SeriesCollection[3].Values.Add(5d);
 
+            DataContext = null;
             DataContext = this;
         }
 
-        public SeriesCollection SeriesCollection { get; set; }
-        public List<string> Labels { get; set; }
-        public Func<int, string> YFormatter { get; set; }
-        private List<Detail> list_packet_filter;
-
-        private void btn_filter_apply_Click(object sender, RoutedEventArgs e)
+        private void check_filter_info ()
         {
-            while (cb_ipadd_input.SelectedItem == null)
+            while (lv_ip.Items == null)
             {
                 MessageBox.Show("Select IP Source", "Caution", MessageBoxButton.OK, MessageBoxImage.Stop);
                 return;
             }
-            string ip_src = cb_ipadd_input.SelectedItem.ToString();
-            DateTime date_from = dp_from.SelectedDate.Value;
-            DateTime date_to = DateTime.Now;
+            ip_src = lv_ip.Items.OfType<string>().ToList();
+            date_from = dp_from.SelectedDate.Value;
+            date_to = DateTime.Now;
             if (dp_to.SelectedDate.Value != DateTime.Today)
             {
                 date_to = dp_to.SelectedDate.Value;
             }
-            List<int> protocol = new List<int>();
+            protocol = new List<int>();
+            
             if (cb_web.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new int[] { 443, 80 });
+                protocol.InsertRange(protocol.Count, web);
             if (cb_ftp.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new int[] { 20, 21 });
+                protocol.InsertRange(protocol.Count, ftp);
             if (cb_dns.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new int[] { 53, 137, 5355 });
+                protocol.InsertRange(protocol.Count, dns);
             if (cb_mail.IsChecked == true)
-                protocol.InsertRange(protocol.Count, new int[] { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 });
+                protocol.InsertRange(protocol.Count, mail);
+
+        }
+
+        private void btn_filter_apply_Click(object sender, RoutedEventArgs e)
+        {
+            check_filter_info();
 
             list_packet_filter = db.getdata(ip_src, date_from, date_to, protocol);
             lv_packet.ClearValue(ItemsControl.ItemsSourceProperty);
@@ -376,11 +474,59 @@ namespace WpfApplication1
             tb_total.Text = "TOTAL: " + total_packet;
 
             BasicLine(ip_src, date_from, date_to);
-            // line_chart.Update();
+            
 
         }
 
-        
+        private void btn_filter_delete_Click(object sender, RoutedEventArgs e)
+        {
+            check_filter_info();
+            if (ip_src != null)
+            {
+                if (MessageBox.Show("Are you sure?", "Delete Data", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    string message = "Total Delete: " + db.delete_details(ip_src, date_from, date_to, protocol);
+                    MessageBox.Show(message, "Anoucement", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+
+        private void btn_add_alert_Click(object sender, RoutedEventArgs e)
+        {
+            HandleDatabase a = new HandleDatabase();
+            list_alert.Add(a.get_alert(6));
+            Alert_Design new_alert = new Alert_Design();
+            new_alert.ShowDialog();
+            lv_alert.ItemsSource = list_alert;
+        }
+
+        private void btn_add_ip_Click(object sender, RoutedEventArgs e)
+        {
+            while (cb_ipadd_input.SelectedItem == null)
+            {
+                MessageBox.Show("Select IP Source", "Caution", MessageBoxButton.OK, MessageBoxImage.Stop);
+                return;
+            }
+            lv_ip.Items.Add(cb_ipadd_input.SelectedItem.ToString());
+            cb_ipadd_input.SelectedItem = null;
+        }
+
+        private void btn_del_ip_Click(object sender, RoutedEventArgs e)
+        {
+            lv_ip.Items.Remove(lv_ip.SelectedItem);
+        }
+
+        private void lv_ip_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            btn_del_ip.IsEnabled = true;
+        }
+
+        private void line_chart_DataClick(object sender, ChartPoint chartPoint)
+        {
+            DetailChart dc = new DetailChart(ip_src, list_packet_filter);
+            dc.Show();
+          
+        }
     }
 
 

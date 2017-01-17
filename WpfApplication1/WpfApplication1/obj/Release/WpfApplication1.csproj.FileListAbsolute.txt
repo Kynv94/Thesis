@@ -65,3 +65,17 @@ E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Release\WpfAp
 E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Release\WpfApplication1.Migrations.v5.resources
 E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Release\WpfApplication1.Properties.Resources.resources
 E:\Work\Final\NET TOUGH\SOURCE\WpfApplication1\WpfApplication1\obj\Release\WpfApplication1.csproj.GenerateResource.Cache
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\EntityFramework.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\EntityFramework.SqlServer.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\Livecharts.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\LiveCharts.Wpf.dll
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\EntityFramework.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\EntityFramework.SqlServer.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\Livecharts.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\Livecharts.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\LiveCharts.Wpf.pdb
+E:\Work\Thesis\WpfApplication1\WpfApplication1\bin\Release\LiveCharts.Wpf.xml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Release\LoginForm.g.cs
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Release\GeneratedInternalTypeHelper.g.cs
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Release\LoginForm.baml
+E:\Work\Thesis\WpfApplication1\WpfApplication1\obj\Release\WpfApplication1.Migrations.v5.resources

@@ -96,7 +96,7 @@ namespace WpfApplication1
                     //Tcp
                     case 6:
                         {
-                            if (ipv4_packet.IsValid)
+                            if (ipv4_packet != null)
                             {
                                 TcpDatagram tcp_packet = ipv4_packet.Tcp;
                                 //add session
@@ -113,49 +113,14 @@ namespace WpfApplication1
                                 //Add state to new session
                                 add_state(new_session, oldsession_state, tcp_packet);
 
-                                //SSL
+                                //SSL - newthread
                                 if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
                                     new_session.IsSSL = true;
                                 else
                                     new_session.IsSSL = false;
 
-                                //Detail
-                                if (ipv4_packet.Payload.IsValid)
-                                    add_detail(new_detail, new_session, ipv4_packet.Tcp);
-                                else
-                                    new_detail = null;
-                                //Neu Goi tin hien tai la http respond
-                                if (tcp_packet.Http.IsResponse)
-                                {
-                                    List<string> methods = new List<string> { "GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH" };
-                                    var old_detail = oldsession.Details.LastOrDefault();
-                                    var old_detail_text = old_detail.TextData;
-                                    //Nếu old session detail là http Request
-                                    if (methods.Any(s => old_detail_text.Contains(s)))
-                                    {
-                                        //Thêm Respond header vào old session detail
-                                        old_detail_text = old_detail_text + "\r\n" + new_detail.TextData;
-                                        old_detail.TextData = old_detail_text;
-                                        old_detail.BinData = old_detail.BinData + "\r\n" + new_detail.BinData;
-                                        old_detail.UpdateTime = new_detail.UpdateTime;
-                                        //Update
-                                        db.UpdateDetail(old_detail);
-                                        new_session = null;
-                                        new_detail = null;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        //Respond gặp old session detail là respond
-                                        //Cập nhật thời gian tương tác gần nhất để tránh timeout
-                                        old_detail.UpdateTime = new_detail.UpdateTime;
-                                        db.UpdateDetail(old_detail);
-                                        new_detail = null;
-                                        new_session = null;
-                                    }
-                                }
-                                //Thêm Detail vào old session
-                                break;
+                                //Detail - New thread
+                                add_detail(new_detail, new_session, ipv4_packet.Tcp);
                             }
                             else
                             {
@@ -168,7 +133,7 @@ namespace WpfApplication1
                     //InternetControlMessageProtocol
                     case 1:
                         {
-                            if (ipv4_packet.Icmp.IsValid)
+                            if (ipv4_packet.Icmp != null)
                             {
                                 new_session.IsSSL = false;
                                 new_session.State = 4;
@@ -184,7 +149,7 @@ namespace WpfApplication1
                     //Udp
                     case 17:
                         {
-                            if (ipv4_packet.Udp.IsValid)
+                            if (ipv4_packet.Udp != null)
                             {
                                 //SSL - newthread
                                 if (ipv4_packet.Transport.SourcePort == 443 || ipv4_packet.Transport.DestinationPort == 443)
@@ -407,10 +372,9 @@ namespace WpfApplication1
             {
                 case 80:
                     {
-                        if (!tcp.Http.IsValid)
+                        if (tcp.Http.Header == null)
                         {
                             //http khong hop le
-                            new_detail = null;
                             break;
                         }
                         if (tcp.Http.IsRequest)
@@ -442,10 +406,10 @@ namespace WpfApplication1
                                     new_detail.KeyData = str.Substring(index2 + 1, str.IndexOf(Environment.NewLine, index2 + 1) - index2) ?? string.Empty;
                                     break;
                                 }
-                                
+
                             }
                             //else
-                            catch(Exception)
+                            catch (Exception)
                             {
                                 new_detail.KeyData = request.Uri ?? string.Empty;
                             }
@@ -453,7 +417,7 @@ namespace WpfApplication1
                         }
                         else
                         {
-                            
+
                             HttpResponseDatagram respond = (HttpResponseDatagram)tcp.Http;
 
                             //TextData
@@ -476,11 +440,11 @@ namespace WpfApplication1
                                 else
                                     new_detail.KeyData = string.Empty;
                             }
-                            catch(Exception)
+                            catch (Exception)
                             {
                                 new_detail.KeyData = string.Empty;
                             }
-                            
+
                             break;
                         }
                     }
@@ -491,7 +455,7 @@ namespace WpfApplication1
                         {
                             new_detail.KeyData = Dns.GetHostEntry(new_session.IP_out).HostName;
                         }
-                        catch(Exception)
+                        catch (Exception)
                         {
                             new_detail.KeyData = string.Empty;
                         }
@@ -525,16 +489,28 @@ namespace WpfApplication1
             }
             //TextData and KeyData
             new_detail.KeyData = string.Empty;
-            if (udp_packet.Dns.IsValid)
+            if (udp_packet.Dns.IsValid || new_detail.PluginID == 53)
             {
                 new_detail.PluginID = 53;
                 //KeyData
                 if (udp_packet.Dns.IsQuery)
+                {
                     new_detail.KeyData = "DNS Query";
+                }
                 if (udp_packet.Dns.IsResponse)
+                {
                     new_detail.KeyData = "DNS Respond";
-                //TextData
-                new_detail.TextData = udp_packet.Dns.Decode(Encoding.UTF8) ?? string.Empty;
+                }
+                string tmp = udp_packet.Dns.Decode(Encoding.ASCII) ?? string.Empty;
+                if (tmp != null)
+                {
+                    new_detail.TextData = null;
+                    foreach (char i in tmp)
+                    {
+                        if (i >= 40 && i <= 176)
+                            new_detail.TextData += i;
+                    }
+                }
             }
             else
             {
@@ -581,7 +557,7 @@ namespace WpfApplication1
             //TextData
             new_detail.TextData = icmp.MessageTypeAndCode.ToString() ?? string.Empty;
             //BinData
-            if (icmp.Payload.IsValid)
+            if (icmp.Payload != null)
                 new_detail.BinData = icmp.Payload.Decode(Encoding.UTF8);
             else
                 new_detail.BinData = string.Empty;
@@ -590,7 +566,7 @@ namespace WpfApplication1
         private static void add_new_packet(Session new_session, Detail new_detail, IpV6Datagram ipv6_packet)
         {
             //Session: IP, Port, SSL, State
-            
+
             //IP Address
             new_session.IP_in = ipv6_packet.Source.ToString() ?? "::";
             new_session.IP_in_is_v4 = false;

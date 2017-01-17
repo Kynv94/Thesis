@@ -231,12 +231,12 @@
                                 <Image Source="Image/add_bell.png" Width="50" Height="50" />
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btn_modify_alert" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}">
+                        <Button x:Name="btn_modify_alert" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="80" Height="80" Background="{x:Null}" BorderBrush="{x:Null}" Click="btn_modify_alert_Click">
                             <StackPanel>
                                 <Image Source="Image/mod_bell.png" Width="50" Height="50" />
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btn_delete_alert" HorizontalAlignment="Left" Margin="160,0,0,0" Width="80" Background="{x:Null}" BorderBrush="{x:Null}">
+                        <Button x:Name="btn_delete_alert" HorizontalAlignment="Left" Margin="160,0,0,0" Width="80" Background="{x:Null}" BorderBrush="{x:Null}" Click="btn_delete_alert_Click">
                             <StackPanel>
                                 <Image Source="Image/del_bell.png" Width="50" Height="50" />
                             </StackPanel>
@@ -245,7 +245,7 @@
                     </Grid>
 
                     <ListView x:Name="lv_alert" Grid.Row="1"
-                              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" >
                         <ListView.Resources>
                             <Style TargetType="{x:Type GridViewColumnHeader}">
                                 <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -280,13 +280,16 @@
                             <GridView>
 
                                 <GridViewColumn Header = "Date" 
-                                    DisplayMemberBinding = "{Binding}" Width= "150" />
+                                    DisplayMemberBinding = "{Binding Date}" Width= "150" />
 
                                 <GridViewColumn Header = "Alert Name" 
-                                    DisplayMemberBinding = "{Binding}" Width= "200" />
+                                    DisplayMemberBinding = "{Binding Name}" Width= "150" />
 
-                                <GridViewColumn Header = "Discription" 
-                                    DisplayMemberBinding = "{Binding}" Width= "300" />
+                                <GridViewColumn Header = "PacketID" 
+                                    DisplayMemberBinding = "{Binding EventID}" Width= "100" />
+                                
+                                <GridViewColumn Header = "IP Source" 
+                                    DisplayMemberBinding = "{Binding IP_Source}" Width= "200" />
 
                             </GridView>
                         </ListView.View>

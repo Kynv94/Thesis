@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="Convert_Protocol.cs" />
     <Compile Include="Database\Alert.cs" />
+    <Compile Include="Database\AlertResult.cs" />
     <Compile Include="Database\AlertWeb.cs" />
     <Compile Include="Database\HandleAlert.cs" />
     <Compile Include="DetailChart.xaml.cs">

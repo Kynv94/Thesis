@@ -20,6 +20,7 @@ namespace WpfApplication1
     /// </summary>
     public partial class Alert_Design : Window
     {
+        private HandleDatabase db = new HandleDatabase();
         public Alert_Design()
         {
             InitializeComponent();
@@ -38,12 +39,23 @@ namespace WpfApplication1
 
         internal void btn_alert_ok_Click(object sender, RoutedEventArgs e)
         {
-            Alert new_alert = HandleAlert.add_alert(tb_name_alert.Text, (bool)cb_enabled.IsChecked, (bool)cb_announce.IsChecked, (bool)cb_popup.IsChecked);
-            foreach (string i in lv_web.Items)
-                HandleAlert.add_web(i, new_alert);
+            if (MainWindow.alert_click == 1)
+            {
+                Alert new_alert = HandleAlert.add_alert(tb_name_alert.Text, (bool)cb_enabled.IsChecked, (bool)cb_announce.IsChecked, (bool)cb_popup.IsChecked);
+                foreach (string i in lv_web.Items)
+                    HandleAlert.add_web(i, new_alert);
 
-            MainWindow.list_alert.Add(new_alert);
+                MainWindow.list_alert.Add(new_alert);
+            }
+            else
+                if (MainWindow.alert_click == 2)
+            {
+                HandleAlert.modify_alert(MainWindow.alert_id, tb_name_alert.Text, (bool)cb_enabled.IsChecked, (bool)cb_announce.IsChecked, (bool)cb_popup.IsChecked);
+                foreach (string i in lv_web.Items)
+                    HandleAlert.modify_web_entry(MainWindow.alert_id, i);
 
+                MainWindow.list_alert = db.get_all_alert();
+            }
 
             this.Close();
         }

@@ -45,7 +45,7 @@ namespace WpfApplication1
         private DateTime date_from;
         private DateTime date_to;
         private List<int> protocol;
-        internal static List <int> web = new List<int> { 443, 80 };
+        internal static List<int> web = new List<int> { 443, 80 };
         internal static List<int> ftp = new List<int> { 20, 21 };
         internal static List<int> dns = new List<int> { 53, 137, 5355 };
         internal static List<int> mail = new List<int> { 25, 109, 110, 143, 158, 209, 587, 5108, 5109, 7052 };
@@ -65,6 +65,9 @@ namespace WpfApplication1
         {
             InitializeComponent();
 
+            list_alert = db.get_all_alert();
+            lv_alert.ItemsSource = list_alert;
+
             // list_web = db.get_alert_web();
             string file_password = @".\password.txt";
             if (File.Exists(file_password) == false)
@@ -74,7 +77,7 @@ namespace WpfApplication1
                 securityrules.AddAccessRule(new FileSystemAccessRule("Administrators", FileSystemRights.FullControl, AccessControlType.Allow));
                 securityrules.AddAccessRule(new FileSystemAccessRule("Everyone", FileSystemRights.Read, AccessControlType.Allow));
                 password_hash = "e19d5cd5af0378da05f63f891c7467af";
-                
+
                 using (FileStream fs = File.Create(file_password, 100, FileOptions.Encrypted, securityrules))
                 {
                     Byte[] info = new UTF8Encoding(true).GetBytes(password_hash);
@@ -148,9 +151,9 @@ namespace WpfApplication1
             update_iplist.WorkerReportsProgress = true;
             update_iplist.DoWork += update_iplist_bw;
             update_iplist.RunWorkerAsync();
-            
+
         }
-        
+
         private void update_iplist_bw(object sender, DoWorkEventArgs e)
         {
             update_ip_list.Dispatcher.Invoke(()
@@ -188,10 +191,10 @@ namespace WpfApplication1
                     break;
             }
             selectedDevice_online = allDevices[deviceIndex];
-            
+
         }
 
-        
+
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
@@ -201,7 +204,7 @@ namespace WpfApplication1
                 {
                     selectedDevice = selectedDevice_offline;
                 }
-                
+
                 // Open the device
                 using (communicator =
                     selectedDevice.Open(65536,                                  // portion of the packet to capture
@@ -209,7 +212,7 @@ namespace WpfApplication1
                                         PacketDeviceOpenAttributes.Promiscuous, // promiscuous mode
                                         1000))                                  // read timeout
                 {
-                    
+
                     // Check the link layer. We support only Ethernet for simplicity.
                     if (communicator.DataLink.Kind != DataLinkKind.Ethernet)
                     {
@@ -221,7 +224,7 @@ namespace WpfApplication1
                         return;
                     }
 
-                    
+
                     // start the capture
                     communicator.ReceivePackets(0, PacketHandler);
 
@@ -244,7 +247,19 @@ namespace WpfApplication1
         void Add_Database(object sender, DoWorkEventArgs e)
         {
             foreach (var item in List_2)
+            {
                 HandlePacket.add_informationv2(item);
+
+                lv_listalert.Dispatcher.Invoke(()
+                =>
+                {
+                    HandlePacket hp = new HandlePacket();
+                    var result = hp.AtlertResults();
+                    if (result.Count != 0)
+                        lv_listalert.Items.Add(result);
+                });
+            }
+            
         }
         // Callback function invoked by libpcap for every incoming packet
         private void PacketHandler(Packet packet)
@@ -267,10 +282,8 @@ namespace WpfApplication1
                     handle_packet.DoWork += Add_Database;
                     handle_packet.RunWorkerAsync();
 
-                    BackgroundWorker handle_alert = new BackgroundWorker();
-                    handle_alert.WorkerReportsProgress = true;
-                    handle_alert.DoWork += Show_Alert;
-                    handle_alert.RunWorkerAsync();
+                    
+
                 }
 
             }
@@ -278,10 +291,7 @@ namespace WpfApplication1
 
         }
 
-        private void Show_Alert (object sender, DoWorkEventArgs e)
-        {
-           // list
-        }
+
 
         private void PacketHandler_Completed(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -322,7 +332,7 @@ namespace WpfApplication1
 
         private void Stop_Btn(object sender, RoutedEventArgs e)
         {
-           
+
             cb_device.IsEnabled = true;
             btn_start.IsEnabled = true;
             btn_stop.IsEnabled = false;
@@ -335,7 +345,7 @@ namespace WpfApplication1
         private string filename_import = null;
         private OfflinePacketDevice selectedDevice_offline;
         private void btn_import_Click(object sender, RoutedEventArgs e)
-        {    
+        {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Pcap file (*.pcap)|*.pcap";
             if (openFileDialog.ShowDialog() == true)
@@ -434,7 +444,7 @@ namespace WpfApplication1
             DataContext = this;
         }
 
-        private void check_filter_info ()
+        private void check_filter_info()
         {
             while (lv_ip.Items == null)
             {
@@ -449,7 +459,7 @@ namespace WpfApplication1
                 date_to = dp_to.SelectedDate.Value;
             }
             protocol = new List<int>();
-            
+
             if (cb_web.IsChecked == true)
                 protocol.InsertRange(protocol.Count, web);
             if (cb_ftp.IsChecked == true)
@@ -474,7 +484,7 @@ namespace WpfApplication1
             tb_total.Text = "TOTAL: " + total_packet;
 
             BasicLine(ip_src, date_from, date_to);
-            
+
 
         }
 
@@ -489,15 +499,6 @@ namespace WpfApplication1
                     MessageBox.Show(message, "Anoucement", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
-        }
-
-        private void btn_add_alert_Click(object sender, RoutedEventArgs e)
-        {
-            HandleDatabase a = new HandleDatabase();
-            list_alert.Add(a.get_alert(6));
-            Alert_Design new_alert = new Alert_Design();
-            new_alert.ShowDialog();
-            lv_alert.ItemsSource = list_alert;
         }
 
         private void btn_add_ip_Click(object sender, RoutedEventArgs e)
@@ -525,10 +526,63 @@ namespace WpfApplication1
         {
             DetailChart dc = new DetailChart(ip_src, list_packet_filter);
             dc.Show();
-          
+
+        }
+
+        internal static int alert_click;
+        private void btn_add_alert_Click(object sender, RoutedEventArgs e)
+        {
+            alert_click = 1;
+            Alert_Design new_alert = new Alert_Design();
+            new_alert.ShowDialog();
+            lv_alert.Items.Refresh();
+            lv_alert.ItemsSource = list_alert;
+
+        }
+
+        internal static int alert_id;
+        private void btn_modify_alert_Click(object sender, RoutedEventArgs e)
+        {
+            if (lv_alert.SelectedItem != null)
+            {
+                alert_click = 2;
+                Alert selected_alert = lv_alert.SelectedItem as Alert;
+
+                alert_id = selected_alert.AlertID;
+                Alert_Design modify_alert = new Alert_Design();
+                modify_alert.tb_name_alert.Text = selected_alert.AlertName;
+                modify_alert.cb_enabled.IsChecked = selected_alert.Enable;
+                modify_alert.cb_announce.IsChecked = selected_alert.Anouncement;
+                modify_alert.cb_popup.IsChecked = selected_alert.Popup;
+                modify_alert.lv_web.ItemsSource = selected_alert.AlertWebs.ToList();
+                modify_alert.ShowDialog();
+
+                lv_alert.Items.Refresh();
+                lv_alert.ItemsSource = list_alert;
+            }
+
+        }
+
+        private void btn_delete_alert_Click(object sender, RoutedEventArgs e)
+        {
+            if (lv_alert.SelectedItem != null)
+            {
+                Alert selected_alert = lv_alert.SelectedItem as Alert;
+
+                list_alert.Remove(selected_alert);
+
+                foreach (var i in selected_alert.AlertWebs)
+                    db.delete_web(i.WebID);
+                db.delete_alert(selected_alert.AlertID);
+
+               
+                lv_alert.Items.Refresh();
+                lv_alert.ItemsSource = list_alert;
+
+
+            }
         }
     }
-
 
 }
 

@@ -629,5 +629,25 @@ namespace WpfApplication1
             }
         }
 
+        internal List<AtlertResult> AtlertResults()
+        {
+            var hb = new HandleDatabase();
+            var ListResult = new List<AtlertResult>();
+            foreach (var item in hb.get_alert_web())
+            {
+                var compareResult = hb.AlertCompare(item.Address);
+                if (compareResult != null)
+                {
+                    var result = new AtlertResult();
+                    result.Date = compareResult.UpdateTime;
+                    result.Name = item.Alert.AlertName;
+                    result.EventID = compareResult.Det_ID;
+                    result.IP_Source = compareResult.Session.IP_in;
+                    ListResult.Add(result);
+                }
+            }
+            return ListResult;
+        }
+
     }
 }

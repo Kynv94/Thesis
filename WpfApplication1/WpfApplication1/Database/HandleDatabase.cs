@@ -238,6 +238,15 @@ namespace WpfApplication1.Database
 
         //==================================================== ALert==================================================
         //Thêm alert
+        internal List<Alert> get_all_alert()
+        {
+            using (var _data = new Context())
+            {
+                var result = _data.Alerts.ToList();
+                return result;
+            }
+        }
+
         internal Alert get_alert(int _alertID)
         {
             using (var _data = new Context())
@@ -306,7 +315,33 @@ namespace WpfApplication1.Database
             }
         }
 
+        //Compare
+        internal List<AlertWeb> get_alert_web()
+        {
+            using (var _data = new Context())
+            {
+                return _data.AlertWebs.Include(s => s.Alert).ToList();
+            }
+        }
+        private static Detail getdetail()
+        {
+            using (var _data = new Context())
+            {
+                return _data.Details.OrderByDescending(s => s.Det_ID).Include(s => s.Session).FirstOrDefault();
+            }
+        }
+        internal Detail AlertCompare(string address)
+        {
+            var _detail = getdetail();
 
+            if (_detail.KeyData != null && _detail.KeyData.Contains(address))
+                return _detail;
+            if (_detail.TextData != null && _detail.TextData.Contains(address))
+                return _detail;
+            return null;
+            
+            
+        }
         ////Delete Detail
         //internal int delete_detail(long? detID)
         //{
